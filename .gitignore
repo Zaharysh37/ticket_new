@@ -2,8 +2,12 @@
 .gradle/
 build/
 !gradle/wrapper/gradle-wrapper.jar  # Оставляем wrapper.jar для воспроизводимости сборки
-!**/src/main/**/build/
-!**/src/test/**/build/
+
+### Исключаем артефакты сборки, оставляем только исходники ###
+**/build/
+**/out/
+**/target/
+**/.gradle/
 
 ### Spring Tool Suite (STS) ###
 .apt_generated

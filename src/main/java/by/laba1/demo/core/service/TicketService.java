@@ -1,7 +1,7 @@
-package by.laba1.demo.service;
+package by.laba1.demo.core.service;
 
-import by.laba1.demo.data.TicketsDataAccessObject;
-import by.laba1.demo.entity.Ticket;
+import by.laba1.demo.core.entities.Ticket;
+import by.laba1.demo.core.dao.TicketsDataAccessObject;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;

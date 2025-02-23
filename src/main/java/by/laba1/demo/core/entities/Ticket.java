@@ -1,4 +1,4 @@
-package by.laba1.demo.entity;
+package by.laba1.demo.core.entities;
 
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;

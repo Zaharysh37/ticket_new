@@ -1,7 +1,7 @@
-package by.laba1.demo.controller;
+package by.laba1.demo.api.controller;
 
-import by.laba1.demo.entity.Ticket;
-import by.laba1.demo.service.TicketService;
+import by.laba1.demo.core.entities.Ticket;
+import by.laba1.demo.core.service.TicketService;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.web.bind.annotation.GetMapping;

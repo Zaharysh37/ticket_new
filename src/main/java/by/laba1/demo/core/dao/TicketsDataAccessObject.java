@@ -1,13 +1,11 @@
-package by.laba1.demo.data;
+package by.laba1.demo.core.dao;
 
-import by.laba1.demo.entity.Ticket;
+import by.laba1.demo.core.entities.Ticket;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.Data;
-import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
 

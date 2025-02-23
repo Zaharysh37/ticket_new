@@ -1,14 +1,19 @@
-package by.laba1.demo.dataAccessLayer;
+package by.laba1.demo.data;
 
-import by.laba1.demo.entityLayer.Ticket;
+import by.laba1.demo.entity.Ticket;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.stereotype.Component;
 
 @Component
+@Setter
+@Data
 public class TicketsDataAccessObject {
     private final List<Ticket> tickets = new ArrayList<>();
 
@@ -28,22 +33,32 @@ public class TicketsDataAccessObject {
                 "5-я городская клиническая больница г. Минска",
                 LocalDateTime.of(2025, 2, 20, 15, 45))
         );
-    }
-
-    public List<Ticket> findAll() {
-        return new ArrayList<>(tickets);
+        tickets.add(
+            new Ticket(++nextId,
+                "Артем Дмитриевич Некрасов",
+                "Врач-офтальмолог",
+                "6-я городская клиническая больница г. Минска",
+                LocalDateTime.of(2025, 2, 20, 15, 45))
+        );
+        tickets.add(
+            new Ticket(++nextId,
+                "Матвей Владимирович Булгаков",
+                "Врач-невролог",
+                "5-я городская клиническая больница г. Минска",
+                LocalDateTime.of(2025, 2, 20, 15, 45))
+        );
     }
 
     public Optional<Ticket> findById(Long id) {
         return tickets.stream().filter(p -> p.getId().equals(id)).findFirst();
     }
 
-    public List<Ticket> getAllTickets(String specialization, String medicalInstitution) {
+    public List<Ticket> getTicketsByFilter(String specialization, String medicalInstitution) {
         return tickets.stream()
             .filter(t -> specialization == null
                 || t.getSpecialization().equalsIgnoreCase(specialization))
             .filter(t -> medicalInstitution == null
                 || t.getMedicalInstitution().equalsIgnoreCase(medicalInstitution))
-            .collect(Collectors.toList());
+            .toList();
     }
 }

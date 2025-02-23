@@ -1,7 +1,7 @@
-package by.laba1.demo.controllerLayer;
+package by.laba1.demo.controller;
 
-import by.laba1.demo.entityLayer.Ticket;
-import by.laba1.demo.serviceLayer.TicketService;
+import by.laba1.demo.entity.Ticket;
+import by.laba1.demo.service.TicketService;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,11 +21,11 @@ public class TicketController {
 
     // GET-запрос с Query Parameters (например: /tickets?specialization=Терапевт)
     @GetMapping
-    public List<Ticket> getAllTickets(
+    public List<Ticket> getTicketsByFilter(
         @RequestParam(required = false) String specialization,
         @RequestParam(required = false) String medicalInstitution
     ) {
-        return ticketService.getAllTickets(specialization, medicalInstitution);
+        return ticketService.getTicketsByFilter(specialization, medicalInstitution);
     }
 
     // GET с Path Parameters (например: /patients/1)

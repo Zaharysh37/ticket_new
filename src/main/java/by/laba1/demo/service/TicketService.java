@@ -1,7 +1,7 @@
-package by.laba1.demo.serviceLayer;
+package by.laba1.demo.service;
 
-import by.laba1.demo.dataAccessLayer.TicketsDataAccessObject;
-import by.laba1.demo.entityLayer.Ticket;
+import by.laba1.demo.data.TicketsDataAccessObject;
+import by.laba1.demo.entity.Ticket;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -14,12 +14,8 @@ public class TicketService {
         this.ticketsDataAccessObject = ticketsDataAccessObject;
     }
 
-    public List<Ticket> getAllTickets() {
-        return ticketsDataAccessObject.findAll();
-    }
-
-    public List<Ticket> getAllTickets(String specialization, String medicalInstitution) {
-        return ticketsDataAccessObject.getAllTickets(specialization, medicalInstitution);
+    public List<Ticket> getTicketsByFilter(String specialization, String medicalInstitution) {
+        return ticketsDataAccessObject.getTicketsByFilter(specialization, medicalInstitution);
     }
 
     public Optional<Ticket> getTicketById(Long id) {

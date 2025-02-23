@@ -1,24 +1,45 @@
 package by.laba1.demo.api.controller;
 
-import by.laba1.demo.core.dao.PatientRepository;
-import by.laba1.demo.core.entities.Patient;
+import by.laba1.demo.api.dto.patient.CreatePatientDto;
+import by.laba1.demo.api.dto.patient.GetPatientDto;
 import by.laba1.demo.core.service.PatientService;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/patients")
+@RequiredArgsConstructor
 public class PatientController {
     private final PatientService patientService;
 
-    public PatientController(PatientService patientService) {
-        this.patientService = patientService;
+    @GetMapping
+    public List<GetPatientDto> getPatientsByFilter(
+        @RequestParam(required = false) String name,
+        @RequestParam(required = false) String email
+    ) {
+        return patientService.getPatientsByFilter(name, email);
     }
 
-    @GetMapping
-    public List<Patient> getAllPatients() {
-        return patientService.getAl
+    @GetMapping("/{id}")
+    public GetPatientDto getPatientById(@PathVariable long id) {
+        return patientService.getPatientById(id);
+    }
+
+    @PostMapping
+    public GetPatientDto createPatient(@RequestBody CreatePatientDto dto) {
+        return patientService.createPatient(dto);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deletePatient(@PathVariable long id) {
+        patientService.deletePatient(id);
     }
 }

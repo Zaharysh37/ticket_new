@@ -9,7 +9,9 @@ import by.laba1.demo.core.mapper.patient.GetPatientMapper;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
@@ -19,9 +21,13 @@ public class PatientService {
     private final GetPatientMapper getPatientMapper;
 
     public List<GetPatientDto> getPatientsByFilter(String name, String email) {
-        return getPatientMapper.toDtos(
-            patientRepository.findByFilters(name, email)
-        );
+        List<Patient> patients = patientRepository.findByFilters(name, email);
+
+        if (patients.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Пациенты не найдены");
+        }
+
+        return getPatientMapper.toDtos(patients);
     }
 
     public GetPatientDto getPatientById(long id) {

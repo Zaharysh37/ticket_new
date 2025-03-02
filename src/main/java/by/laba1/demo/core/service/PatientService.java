@@ -19,18 +19,23 @@ public class PatientService {
     private final GetPatientMapper getPatientMapper;
 
     public List<GetPatientDto> getPatientsByFilter(String name, String email) {
-        return getPatientMapper.toDtos(patientRepository.findByFilters(name, email));
+        return getPatientMapper.toDtos(
+            patientRepository.findByFilters(name, email)
+        );
     }
 
     public GetPatientDto getPatientById(long id) {
-        Patient getPatient = patientRepository.findById(id).orElse(null);
-        return getPatientMapper.toDto(getPatient);
+        return getPatientMapper.toDto(
+            patientRepository.findById(id).orElse(null)
+        );
     }
 
     public GetPatientDto createPatient(CreatePatientDto dto) {
         Patient patient = createPatientMapper.toEntity(dto);
         Patient savedPatient = patientRepository.save(patient);
-        return getPatientMapper.toDto(savedPatient);
+        return getPatientMapper.toDto(
+            savedPatient
+        );
     }
 
     public void deletePatient(long id) {

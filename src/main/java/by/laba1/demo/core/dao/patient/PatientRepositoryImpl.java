@@ -13,7 +13,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class PatientRepositoryImpl implements PatientRepositoryCustom {
-
     private final EntityManager entityManager;
 
     @Autowired

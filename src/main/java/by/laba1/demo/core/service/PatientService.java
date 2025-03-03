@@ -24,7 +24,7 @@ public class PatientService {
         List<Patient> patients = patientRepository.findByFilters(name, email);
 
         if (patients.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Пациенты не найдены");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Patients not found");
         }
 
         return getPatientMapper.toDtos(patients);
@@ -32,16 +32,39 @@ public class PatientService {
 
     public GetPatientDto getPatientById(long id) {
         return getPatientMapper.toDto(
-            patientRepository.findById(id).orElse(null)
+            patientRepository.findById(id).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patients not found")
+            )
         );
     }
 
     public GetPatientDto createPatient(CreatePatientDto dto) {
+        if (patientRepository.existsByEmail(dto.getEmail())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "Patient with this email already exist: " + dto.getEmail());
+        }
+
         Patient patient = createPatientMapper.toEntity(dto);
         Patient savedPatient = patientRepository.save(patient);
-        return getPatientMapper.toDto(
-            savedPatient
-        );
+        return getPatientMapper.toDto(savedPatient);
+    }
+
+    public GetPatientDto updatePatient(long id, CreatePatientDto dto) {
+        Patient patient = patientRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                "Patient with this id " + id + " not found"));
+
+        if (!patient.getEmail().equals(dto.getEmail()) &&
+            patientRepository.existsByEmail(dto.getEmail())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "Patient with this email already exist: " + dto.getEmail());
+        }
+
+        patient.setName(dto.getName());
+        patient.setEmail(dto.getEmail());
+
+        Patient updatedPatient = patientRepository.save(patient);
+        return getPatientMapper.toDto(updatedPatient);
     }
 
     public void deletePatient(long id) {

@@ -20,8 +20,8 @@ public class PatientService {
     private final CreatePatientMapper createPatientMapper;
     private final GetPatientMapper getPatientMapper;
 
-    public List<GetPatientDto> getPatientsByFilter(String name, String email) {
-        List<Patient> patients = patientRepository.findByFilters(name, email);
+    public List<GetPatientDto> getPatientsByFilter(String name, String phoneNumber) {
+        List<Patient> patients = patientRepository.findByFilters(name, phoneNumber);
 
         if (patients.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Patients not found");
@@ -39,9 +39,9 @@ public class PatientService {
     }
 
     public GetPatientDto createPatient(CreatePatientDto dto) {
-        if (patientRepository.existsByEmail(dto.getEmail())) {
+        if (patientRepository.existsByPhoneNumber(dto.getPhoneNumber())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                "Patient with this email already exist: " + dto.getEmail());
+                "Patient with this email already exist: " + dto.getPhoneNumber());
         }
 
         Patient patient = createPatientMapper.toEntity(dto);
@@ -54,14 +54,13 @@ public class PatientService {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                 "Patient with this id " + id + " not found"));
 
-        if (!patient.getEmail().equals(dto.getEmail()) &&
-            patientRepository.existsByEmail(dto.getEmail())) {
+        if (!patient.getPhoneNumber().equals(dto.getPhoneNumber()) &&
+            patientRepository.existsByPhoneNumber(dto.getPhoneNumber())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                "Patient with this email already exist: " + dto.getEmail());
+                "Patient with this phone number already exist: " + dto.getPhoneNumber());
         }
-
-        patient.setName(dto.getName());
-        patient.setEmail(dto.getEmail());
+        
+        createPatientMapper.merge(patient, dto);
 
         Patient updatedPatient = patientRepository.save(patient);
         return getPatientMapper.toDto(updatedPatient);

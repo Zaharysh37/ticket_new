@@ -25,9 +25,9 @@ public class PatientController {
     @GetMapping
     public List<GetPatientDto> getPatientsByFilter(
         @RequestParam(required = false) String name,
-        @RequestParam(required = false) String email
+        @RequestParam(required = false) String PhoneNumber
     ) {
-        return patientService.getPatientsByFilter(name, email);
+        return patientService.getPatientsByFilter(name, PhoneNumber);
     }
 
     @GetMapping("/{id}")

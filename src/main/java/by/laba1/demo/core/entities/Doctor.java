@@ -7,16 +7,21 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.Data;
 
 @Entity
-@Table(name = "patients")
+@Table(name = "doctors")
 @Data
-public class Patient {
+public class Doctor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,6 +29,12 @@ public class Patient {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, unique = true)
-    private String phoneNumber;
+    @Column(nullable = false)
+    private String specialization;
+
+    @ManyToMany(mappedBy = "doctors")
+    private Set<Clinic> clinics = new HashSet<>();
+
+    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Appointment> appointments = new ArrayList<>();
 }

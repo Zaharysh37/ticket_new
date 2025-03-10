@@ -10,8 +10,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import lombok.Data;
 
@@ -31,9 +34,12 @@ public class Clinic {
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-        name = "clinic_doctor",
+        name = "clinic_doctors",
         joinColumns = @JoinColumn(name = "clinic_id"),
         inverseJoinColumns = @JoinColumn(name = "doctor_id")
     )
     private Set<Doctor> doctors = new HashSet<>();
+
+    @OneToMany(mappedBy = "clinic", cascade = CascadeType.ALL, fetch = FetchType.LAZY) //, fetch = FetchType.LAZY
+    private List<Appointment> appointments = new ArrayList<>();
 }

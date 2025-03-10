@@ -26,4 +26,7 @@ public class Patient {
 
     @Column(nullable = false, unique = true)
     private String phoneNumber;
+
+    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Appointment> appointments = new ArrayList<>();
 }

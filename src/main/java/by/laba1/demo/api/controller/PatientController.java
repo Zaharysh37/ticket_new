@@ -23,7 +23,7 @@ public class PatientController {
     private final PatientService patientService;
 
     @GetMapping
-    public List<GetPatientDto> getPatientsByFilter(
+    public List<GetPatientDto> getByFilter(
         @RequestParam(required = false) String name,
         @RequestParam(required = false) String PhoneNumber
     ) {
@@ -31,24 +31,24 @@ public class PatientController {
     }
 
     @GetMapping("/{id}")
-    public GetPatientDto getPatientById(@PathVariable long id) {
+    public GetPatientDto getById(@PathVariable long id) {
         return patientService.getPatientById(id);
     }
 
     @PostMapping
-    public GetPatientDto createPatient(@RequestBody CreatePatientDto dto) {
+    public GetPatientDto create(@RequestBody CreatePatientDto dto) {
         return patientService.createPatient(dto);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<GetPatientDto> updatePatient(
+    public ResponseEntity<GetPatientDto> update(
         @PathVariable long id,
         @RequestBody CreatePatientDto dto) {
         return ResponseEntity.ok(patientService.updatePatient(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public void deletePatient(@PathVariable long id) {
+    public void delete(@PathVariable long id) {
         patientService.deletePatient(id);
     }
 }

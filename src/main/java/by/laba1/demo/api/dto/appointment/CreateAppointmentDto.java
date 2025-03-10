@@ -1,5 +1,6 @@
 package by.laba1.demo.api.dto.appointment;
 
+import by.laba1.demo.api.dto.clinic.GetClinicDto;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import lombok.Data;
@@ -12,5 +13,9 @@ public class CreateAppointmentDto {
     @NotBlank
     private Long doctorId;
 
+    @NotBlank
+    private Long clinicId;
+
     private LocalDateTime appointmentTime;
+
 }

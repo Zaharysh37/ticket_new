@@ -11,8 +11,8 @@ import org.springframework.stereotype.Repository;
 public interface PatientRepository extends JpaRepository<Patient, Long> {
     @Query("SELECT p FROM Patient p WHERE " +
         "(:name IS NULL OR p.name = :name) AND" +
-        " (:email IS NULL OR p.phoneNumber = :PhoneNumber)")
-    List<Patient> findByFilters(@Param("name") String name, @Param("PhoneNumber") String PhoneNumber);
+        " (:phoneNumber IS NULL OR p.phoneNumber = :phoneNumber)")
+    List<Patient> findByFilters(@Param("name") String name, @Param("phoneNumber") String phoneNumber);
 
-    boolean existsByPhoneNumber(String PhoneNumber);
+    boolean existsByPhoneNumber(String phoneNumber);
 }

@@ -28,6 +28,10 @@ public class Appointment {
     @JoinColumn(name = "doctor_id", nullable = false)
     private Doctor doctor;
 
+    @ManyToOne
+    @JoinColumn(name = "clinic_id", nullable = false)
+    private Clinic clinic;
+
     @Column(nullable = false, unique = true)
     private LocalDateTime appointmentTime;
 }

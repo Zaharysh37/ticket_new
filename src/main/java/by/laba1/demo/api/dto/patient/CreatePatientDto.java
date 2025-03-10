@@ -11,5 +11,5 @@ public class CreatePatientDto {
     private String name;
 
     @NotBlank
-    private String PhoneNumber;
+    private String phoneNumber;
 }

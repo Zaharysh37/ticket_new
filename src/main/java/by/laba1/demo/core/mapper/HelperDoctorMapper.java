@@ -21,9 +21,7 @@ public class HelperDoctorMapper {
         if (doctorIds == null) {
             return Collections.emptySet();
         }
-        Set<Doctor> doctors = new HashSet<>(doctorRepository.findAllById(doctorIds));
-        System.out.println("Найденные доктора: " + doctors);
-        return doctors;
+        return new HashSet<>(doctorRepository.findAllById(doctorIds));
     }
 
     public Set<Long> mapDoctorsToDoctorTds(Set<Doctor> doctors) {

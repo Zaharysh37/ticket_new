@@ -6,5 +6,5 @@ import lombok.Data;
 public class GetPatientDto {
     private Long id;
     private String name;
-    private String PhoneNumber;
+    private String phoneNumber;
 }

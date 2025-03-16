@@ -12,6 +12,8 @@ import org.mapstruct.Mapping;
 public interface GetAppointmentMapper extends BaseMapper<Appointment, GetAppointmentDto> {
     @Mapping(source = "doctor", target = "doctorDto")
     @Mapping(source = "patient", target = "patientDto")
+    @Mapping(source = "clinic.name", target = "clinicName")
+    @Mapping(source = "clinic.address", target = "clinicAddress")
     GetAppointmentDto toDto(Appointment appointment);
 
     @Mapping(source = "doctorDto", target = "doctor")

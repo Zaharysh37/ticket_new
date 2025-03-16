@@ -15,7 +15,6 @@ import org.mapstruct.ReportingPolicy;
     nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
     nullValueIterableMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT
 )
-
 public interface BaseMapper<E, D> {
 
     D toDto(E e);

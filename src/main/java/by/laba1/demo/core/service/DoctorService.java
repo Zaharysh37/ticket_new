@@ -2,11 +2,13 @@ package by.laba1.demo.core.service;
 
 import by.laba1.demo.api.dto.doctor.CreateDoctorDto;
 import by.laba1.demo.api.dto.doctor.GetDoctorDto;
+import by.laba1.demo.core.dao.cache.Cache;
 import by.laba1.demo.core.dao.doctor.DoctorRepository;
 import by.laba1.demo.core.entities.Doctor;
 import by.laba1.demo.core.mapper.doctor.CreateDoctorMapper;
 import by.laba1.demo.core.mapper.doctor.GetDoctorMapper;
 import jakarta.persistence.EntityNotFoundException;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,10 +19,14 @@ public class DoctorService {
     private final DoctorRepository doctorRepository;
     private final CreateDoctorMapper createDoctorMapper;
     private final GetDoctorMapper getDoctorMapper;
+    private final Cache<String, List<GetDoctorDto>> doctorCache = new Cache<>(10 * 60 * 1000);
 
     public GetDoctorDto create(CreateDoctorDto dto) {
         Doctor doctor = createDoctorMapper.toEntity(dto);
         Doctor savedDoctor = doctorRepository.save(doctor);
+
+        doctorCache.clear();
+
         return getDoctorMapper.toDto(savedDoctor);
     }
 
@@ -34,17 +40,36 @@ public class DoctorService {
         return getDoctorMapper.toDto(doctor);
     }
 
+    public List<GetDoctorDto> findAvailable(LocalDateTime appointmentTime, String specialization) {
+        String cacheKey = specialization + "_" + (appointmentTime != null ? appointmentTime.toString() : "null");
+
+        List<GetDoctorDto> cachedDoctors = doctorCache.get(cacheKey);
+        if (cachedDoctors != null) {
+            return cachedDoctors;
+        }
+
+        List<Doctor> doctors = doctorRepository.findAvailableDoctors(appointmentTime, specialization);
+        List<GetDoctorDto> doctorDtos = getDoctorMapper.toDtos(doctors);
+
+        doctorCache.put(cacheKey, doctorDtos);
+
+        return doctorDtos;
+    }
+
     public GetDoctorDto update(Long id, CreateDoctorDto dto) {
         Doctor doctor = doctorRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Doctor not found"));
 
         createDoctorMapper.merge(doctor, dto);
-
         doctor = doctorRepository.save(doctor);
+
+        doctorCache.clear();
+
         return getDoctorMapper.toDto(doctor);
     }
 
     public void delete(Long id) {
         doctorRepository.deleteById(id);
+        doctorCache.clear();
     }
 }

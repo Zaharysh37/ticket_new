@@ -1,6 +1,5 @@
 package by.laba1.demo.api.dto.clinic;
 
-import by.laba1.demo.api.dto.doctor.GetDoctorDto;
 import jakarta.validation.constraints.NotBlank;
 import java.util.HashSet;
 import java.util.Set;

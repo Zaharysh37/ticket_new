@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.Data;
 
+
 @Data
 public class GetClinicDto {
     private Long id;

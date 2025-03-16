@@ -40,6 +40,6 @@ public class Clinic {
     )
     private Set<Doctor> doctors = new HashSet<>();
 
-    @OneToMany(mappedBy = "clinic", cascade = CascadeType.ALL, fetch = FetchType.LAZY) //, fetch = FetchType.LAZY
+    @OneToMany(mappedBy = "clinic", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Appointment> appointments = new ArrayList<>();
 }

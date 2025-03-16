@@ -2,7 +2,7 @@ package by.laba1.demo.api.controller;
 
 import by.laba1.demo.api.dto.clinic.CreateClinicDto;
 import by.laba1.demo.api.dto.clinic.GetClinicDto;
-import by.laba1.demo.core.service.ClinicService;
+import by.laba1.demo.core.service.clinic.ClinicService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;

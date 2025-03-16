@@ -2,6 +2,7 @@ package by.laba1.demo.core.service;
 
 import by.laba1.demo.api.dto.patient.CreatePatientDto;
 import by.laba1.demo.api.dto.patient.GetPatientDto;
+import by.laba1.demo.core.dao.cache.Cache;
 import by.laba1.demo.core.dao.patient.PatientRepository;
 import by.laba1.demo.core.entities.Patient;
 import by.laba1.demo.core.mapper.patient.CreatePatientMapper;
@@ -19,6 +20,7 @@ public class PatientService {
     private final PatientRepository patientRepository;
     private final CreatePatientMapper createPatientMapper;
     private final GetPatientMapper getPatientMapper;
+    private final Cache<Long, GetPatientDto> patientCache = new Cache<>(10 * 60 * 1000);
 
     public List<GetPatientDto> getPatientsByFilter(String name, String phoneNumber) {
         List<Patient> patients = patientRepository.findByFilters(name, phoneNumber);
@@ -31,11 +33,18 @@ public class PatientService {
     }
 
     public GetPatientDto getPatientById(long id) {
-        return getPatientMapper.toDto(
-            patientRepository.findById(id).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patients not found")
-            )
+        GetPatientDto cachedPatient = patientCache.get(id);
+        if (cachedPatient != null) {
+            return cachedPatient;
+        }
+
+        Patient patientFound = patientRepository.findById(id).orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patients not found")
         );
+        GetPatientDto dto = getPatientMapper.toDto(patientFound);
+        patientCache.put(id, dto);
+
+        return getPatientMapper.toDto(patientFound);
     }
 
     public GetPatientDto createPatient(CreatePatientDto dto) {
@@ -68,5 +77,6 @@ public class PatientService {
 
     public void deletePatient(long id) {
         patientRepository.deleteById(id);
+        patientCache.clear();
     }
 }

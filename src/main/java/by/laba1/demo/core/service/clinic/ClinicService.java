@@ -1,21 +1,17 @@
-package by.laba1.demo.core.service;
+package by.laba1.demo.core.service.clinic;
 
 import by.laba1.demo.api.dto.clinic.CreateClinicDto;
 import by.laba1.demo.api.dto.clinic.GetClinicDto;
 import by.laba1.demo.core.dao.appointment.AppointmentRepository;
+import by.laba1.demo.core.dao.cache.Cache;
 import by.laba1.demo.core.dao.clinic.ClinicRepository;
 import by.laba1.demo.core.dao.doctor.DoctorRepository;
 import by.laba1.demo.core.entities.Clinic;
-import by.laba1.demo.core.entities.Doctor;
-import by.laba1.demo.core.entities.Patient;
 import by.laba1.demo.core.mapper.clinic.CreateClinicMapper;
 import by.laba1.demo.core.mapper.clinic.GetClinicMapper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -30,6 +26,8 @@ public class ClinicService {
     private final AppointmentRepository appointmentRepository;
     private final CreateClinicMapper createClinicMapper;
     private final GetClinicMapper getClinicMapper;
+    private final HelperClinicService helperClinicService;
+    private final Cache<Long, GetClinicDto> clinicCache = new Cache<>(10 * 60 * 1000);
 
     public GetClinicDto create(CreateClinicDto dto) {
         Clinic clinic = createClinicMapper.toEntity(dto);
@@ -46,16 +44,25 @@ public class ClinicService {
     }
 
     public GetClinicDto getById(Long id) {
+        GetClinicDto dto = clinicCache.get(id);
+        if (dto != null) {
+            return dto;
+        }
+
         Clinic clinic = clinicRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Clinic not found"));
+        GetClinicDto getClinicDto = getClinicMapper.toDto(clinic);
+
+        clinicCache.put(id, getClinicDto);
+
         return getClinicMapper.toDto(clinic);
     }
 
-    @Transactional
     public GetClinicDto update(Long id, CreateClinicDto dto) {
         Clinic clinic = clinicRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Clinic not found"));
 
+        helperClinicService.updateDoctorsAndRemoveAppointments(clinic, dto.getDoctorIds());
         createClinicMapper.merge(clinic, dto);
 
         Clinic savedClinic = clinicRepository.save(clinic);

@@ -6,6 +6,7 @@ import by.laba1.demo.core.mapper.BaseMapper;
 import by.laba1.demo.core.mapper.HelperDoctorMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 @Mapper(config = BaseMapper.class, uses = HelperDoctorMapper.class)
 public interface CreateClinicMapper extends BaseMapper<Clinic, CreateClinicDto> {
@@ -14,4 +15,7 @@ public interface CreateClinicMapper extends BaseMapper<Clinic, CreateClinicDto> 
 
     @Mapping(source = "doctors", target = "doctorIds")
     CreateClinicDto toDto(Clinic clinic);
+
+    @Mapping(source = "doctorIds", target = "doctors")
+    Clinic merge(@MappingTarget Clinic clinic, CreateClinicDto dto);
 }

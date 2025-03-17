@@ -15,7 +15,7 @@ public class HelperClinicService {
     private final AppointmentRepository appointmentRepository;
     private final DoctorRepository doctorRepository;
 
-    public Set<Doctor> updateDoctorsAndRemoveAppointments(Clinic clinic, Set<Long> doctorIds) {
+    void updateDoctorsAndRemoveAppointments(Clinic clinic, Set<Long> doctorIds) {
         Set<Doctor> newDoctors = new HashSet<>(doctorRepository.findAllById(doctorIds));
         Set<Doctor> removedDoctors = new HashSet<>(clinic.getDoctors());
         removedDoctors.removeAll(newDoctors);
@@ -23,7 +23,5 @@ public class HelperClinicService {
         if (!removedDoctors.isEmpty()) {
             appointmentRepository.deleteByClinicAndDoctorIn(clinic, removedDoctors);
         }
-
-        return newDoctors;
     }
 }

@@ -3,7 +3,7 @@ package by.laba1.demo.core.service;
 import by.laba1.demo.api.dto.appointment.CreateAppointmentDto;
 import by.laba1.demo.api.dto.appointment.GetAppointmentDto;
 import by.laba1.demo.core.dao.appointment.AppointmentRepository;
-import by.laba1.demo.core.dao.cache.Cache;
+import by.laba1.demo.core.dao.chmem.MyCache;
 import by.laba1.demo.core.dao.clinic.ClinicRepository;
 import by.laba1.demo.core.dao.doctor.DoctorRepository;
 import by.laba1.demo.core.dao.patient.PatientRepository;
@@ -26,7 +26,8 @@ public class AppointmentService {
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
     private final ClinicRepository clinicRepository;
-    private final Cache<String, List<GetAppointmentDto>> appointmentCache = new Cache<>(10 * 60 * 1000);
+    private final MyCache<String, List<GetAppointmentDto>>
+        appointmentMyCache = new MyCache<>(10 * 60 * 1000L);
 
     public GetAppointmentDto create(CreateAppointmentDto dto) {
         Appointment appointment = createAppointmentMapper.toEntity(dto);
@@ -36,7 +37,7 @@ public class AppointmentService {
         }
 
         Appointment savedAppointment = appointmentRepository.save(appointment);
-        appointmentCache.clear();
+        appointmentMyCache.clear();
         return getAppointmentMapper.toDto(savedAppointment);
     }
 
@@ -52,20 +53,20 @@ public class AppointmentService {
 
     public void delete(Long id) {
         appointmentRepository.deleteById(id);
-        appointmentCache.clear();
+        appointmentMyCache.clear();
     }
 
     public List<GetAppointmentDto> findByPatientName(String patientName) {
         String cacheKey = "appointments_" + patientName;
 
-        List<GetAppointmentDto> cachedAppointments = appointmentCache.get(cacheKey);
+        List<GetAppointmentDto> cachedAppointments = appointmentMyCache.get(cacheKey);
         if (cachedAppointments != null) {
             return cachedAppointments;
         }
 
         List<Appointment> appointments = appointmentRepository.findByPatientName(patientName);
         List<GetAppointmentDto> appointmentDtos = getAppointmentMapper.toDtos(appointments);
-        appointmentCache.put(cacheKey, appointmentDtos);
+        appointmentMyCache.put(cacheKey, appointmentDtos);
 
         return appointmentDtos;
     }

@@ -3,7 +3,7 @@ package by.laba1.demo.core.service.clinic;
 import by.laba1.demo.api.dto.clinic.CreateClinicDto;
 import by.laba1.demo.api.dto.clinic.GetClinicDto;
 import by.laba1.demo.core.dao.appointment.AppointmentRepository;
-import by.laba1.demo.core.dao.cache.Cache;
+import by.laba1.demo.core.dao.chmem.MyCache;
 import by.laba1.demo.core.dao.clinic.ClinicRepository;
 import by.laba1.demo.core.dao.doctor.DoctorRepository;
 import by.laba1.demo.core.entities.Clinic;
@@ -27,7 +27,7 @@ public class ClinicService {
     private final CreateClinicMapper createClinicMapper;
     private final GetClinicMapper getClinicMapper;
     private final HelperClinicService helperClinicService;
-    private final Cache<Long, GetClinicDto> clinicCache = new Cache<>(10 * 60 * 1000);
+    private final MyCache<Long, GetClinicDto> clinicMyCache = new MyCache<>(10 * 60 * 1000L);
 
     public GetClinicDto create(CreateClinicDto dto) {
         Clinic clinic = createClinicMapper.toEntity(dto);
@@ -44,7 +44,7 @@ public class ClinicService {
     }
 
     public GetClinicDto getById(Long id) {
-        GetClinicDto dto = clinicCache.get(id);
+        GetClinicDto dto = clinicMyCache.get(id);
         if (dto != null) {
             return dto;
         }
@@ -53,7 +53,7 @@ public class ClinicService {
             .orElseThrow(() -> new EntityNotFoundException("Clinic not found"));
         GetClinicDto getClinicDto = getClinicMapper.toDto(clinic);
 
-        clinicCache.put(id, getClinicDto);
+        clinicMyCache.put(id, getClinicDto);
 
         return getClinicMapper.toDto(clinic);
     }

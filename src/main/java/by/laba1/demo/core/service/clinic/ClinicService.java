@@ -2,6 +2,8 @@ package by.laba1.demo.core.service.clinic;
 
 import by.laba1.demo.api.dto.clinic.CreateClinicDto;
 import by.laba1.demo.api.dto.clinic.GetClinicDto;
+import by.laba1.demo.api.error.MessageException;
+import by.laba1.demo.api.error.ResourceNotFoundException;
 import by.laba1.demo.core.dao.appointment.AppointmentRepository;
 import by.laba1.demo.core.dao.chmem.MyCache;
 import by.laba1.demo.core.dao.clinic.ClinicRepository;
@@ -70,6 +72,9 @@ public class ClinicService {
     }
 
     public void delete(Long id) {
+        if (!clinicRepository.existsById(id)) {
+            throw new ResourceNotFoundException(String.format(MessageException.ENTITY_WITH_ID_NOT_FOUND, id));
+        }
         clinicRepository.deleteById(id);
     }
 }

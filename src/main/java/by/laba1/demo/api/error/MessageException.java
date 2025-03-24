@@ -7,6 +7,7 @@ public class MessageException {
     public static final String SPECIALIZATION_REQUIRED = "Specialization is required";
     public static final String PHONE_NUMBER_UNIQUE = "Patient with this phone number already exists: ";
     public static final String INVALID_JSON = "Invalid JSON format";
-    public static final String CONSTRAINT_VIOLATION = "Validation error: %s";
+    public static final String CONFLICT = "Invalid input";
+    public static final String BAD_MAPPING = "Incorrect mapping";
     public static final String UNEXPECTED_ERROR = "Unexpected error occurred";
 }

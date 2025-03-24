@@ -27,16 +27,12 @@ public class DoctorService {
     private final MyCache<String, List<GetDoctorDto>> doctorMyCache = new MyCache<>(2, 60_000);
 
     public GetDoctorDto create(CreateDoctorDto dto) {
-        try {
-            Doctor doctor = createDoctorMapper.toEntity(dto);
-            Doctor savedDoctor = doctorRepository.save(doctor);
+        Doctor doctor = createDoctorMapper.toEntity(dto);
+        Doctor savedDoctor = doctorRepository.save(doctor);
 
-            doctorMyCache.clear();
+        doctorMyCache.clear();
 
-            return getDoctorMapper.toDto(savedDoctor);
-        } catch (Exception e) {
-            throw new BadRequestException(MessageException.UNEXPECTED_ERROR);
-        }
+        return getDoctorMapper.toDto(savedDoctor);
     }
 
     public List<GetDoctorDto> getAll() {
@@ -64,6 +60,9 @@ public class DoctorService {
         }
 
         List<Doctor> doctors = doctorRepository.findAvailableDoctors(appointmentTime, specialization);
+        if (doctors.isEmpty()) {
+            throw new EntityNotFoundException(MessageException.ENTITY_WITH_CRITERIA_NOT_FOUND);
+        }
         List<GetDoctorDto> doctorDtos = getDoctorMapper.toDtos(doctors);
 
         doctorMyCache.put(cacheKey, doctorDtos);

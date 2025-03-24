@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -42,8 +43,8 @@ public class GlobalExceptionHandler {
             .collect(Collectors.toMap(
                 fieldError -> fieldError.getField(),
                 fieldError -> fieldError.getDefaultMessage(),
-                (existing, replacement) -> existing
-            ));
+                (existing, replacement) -> existing)
+            );
         log.warn("Validation failed: {}", errors);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
@@ -91,6 +92,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleDateTimeParseException(DateTimeParseException ex) {
         log.warn("Invalid date format: {}", ex.getMessage());
         return buildResponse(HttpStatus.BAD_REQUEST, "Invalid date format.");
+    }
+
+    @ExceptionHandler(EmptyResultDataAccessException.class)
+    public ResponseEntity<Map<String, String>> handleEmptyResultDataAccessException(EmptyResultDataAccessException ex) {
+        log.warn("Empty result: {}", ex.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST, "Invalid date format.");
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<Map<String, String>> ValidationException(ValidationException ex) {
+        log.warn("Validation is failed result: {}", ex.getMessage());
+        return buildResponse(HttpStatus.CONFLICT, "Invalid date format.");
     }
 
     @ExceptionHandler(Exception.class)

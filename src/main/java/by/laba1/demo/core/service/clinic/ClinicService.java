@@ -27,7 +27,7 @@ public class ClinicService {
     private final CreateClinicMapper createClinicMapper;
     private final GetClinicMapper getClinicMapper;
     private final HelperClinicService helperClinicService;
-    private final MyCache<Long, GetClinicDto> clinicMyCache = new MyCache<>(10 * 60 * 1000L);
+    private final MyCache<Long, GetClinicDto> clinicMyCache = new MyCache<>(100, 120_000);
 
     public GetClinicDto create(CreateClinicDto dto) {
         Clinic clinic = createClinicMapper.toEntity(dto);

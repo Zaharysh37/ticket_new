@@ -3,6 +3,7 @@ package by.laba1.demo.api.controller;
 import by.laba1.demo.api.dto.clinic.CreateClinicDto;
 import by.laba1.demo.api.dto.clinic.GetClinicDto;
 import by.laba1.demo.core.service.clinic.ClinicService;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,7 +22,7 @@ public class ClinicController {
     private final ClinicService clinicService;
 
     @PostMapping
-    public GetClinicDto create(@RequestBody CreateClinicDto dto) {
+    public GetClinicDto create(@Valid @RequestBody CreateClinicDto dto) {
         return clinicService.create(dto);
     }
 
@@ -38,7 +39,7 @@ public class ClinicController {
     @PutMapping("/{id}")
     public GetClinicDto update(
         @PathVariable long id,
-        @RequestBody CreateClinicDto dto) {
+        @Valid @RequestBody CreateClinicDto dto) {
         return clinicService.update(id, dto);
     }
 

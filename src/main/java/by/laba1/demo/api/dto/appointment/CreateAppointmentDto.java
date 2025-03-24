@@ -6,15 +6,15 @@ import lombok.Data;
 
 @Data
 public class CreateAppointmentDto {
-    @NotBlank
+    @NotBlank(message = "patientId is required")
     private Long patientId;
 
-    @NotBlank
+    @NotBlank(message = "doctorId is required")
     private Long doctorId;
 
-    @NotBlank
+    @NotBlank(message = "clinicId is required")
     private Long clinicId;
 
+    @NotBlank(message = "appointmentTime is required")
     private LocalDateTime appointmentTime;
-
 }

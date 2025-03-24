@@ -1,0 +1,32 @@
+<configuration>
+    <!-- Имя основного лог-файла -->
+    <property name="LOG_FILE" value="logs/app.log" />
+
+    <!-- Appender для записи в файл с ротацией по времени -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- Шаблон имени файла с ротацией каждую минуту -->
+            <fileNamePattern>logs/app.%d{yyyy-MM-dd_HH-mm}.log</fileNamePattern>
+            <!-- Хранение логов за последние 60 минут (можно увеличить) -->
+            <maxHistory>60</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <!-- Формат логов: дата, уровень, логгер, сообщение -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Логирование в консоль (опционально) -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Уровень логирования и назначение appender'ов -->
+    <root level="INFO">
+        <appender-ref ref="FILE" />
+        <appender-ref ref="CONSOLE" />
+    </root>
+</configuration>

@@ -7,10 +7,10 @@ import lombok.Data;
 
 @Data
 public class CreateClinicDto {
-    @NotBlank
+    @NotBlank(message = "name is required")
     private String name;
 
-    @NotBlank
+    @NotBlank(message = "address is required")
     private String address;
 
     private Set<Long> doctorIds = new HashSet<>();

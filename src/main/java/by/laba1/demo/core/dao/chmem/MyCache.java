@@ -1,57 +1,96 @@
 package by.laba1.demo.core.dao.chmem;
 
+import by.laba1.demo.api.aspects.LogExecution;
+import by.laba1.demo.api.aspects.RequestCounter;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class MyCache<K, V> {
-    private final ConcurrentHashMap<K, V> cache = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<K, Long> timestamps = new ConcurrentHashMap<>();
-    private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-    private final long maxAgeInMillis;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
-    public MyCache(long maxAgeInMillis) {
-        this.maxAgeInMillis = maxAgeInMillis;
+@Slf4j
+public class MyCache<K, V> {
+    private final int maxSize;
+    private final long defaultTimeout;
+    private final Map<K, CacheEntry<V>> cache;
+    private final ScheduledExecutorService scheduler;
+
+    @Getter
+    @Setter
+    @RequiredArgsConstructor
+    private static class CacheEntry<V> {
+        private final V value;
+        private final long expiryTime;
+    }
+
+    public MyCache(int maxSize, long defaultTimeout) {
+        if (maxSize <= 0) {
+            throw new IllegalArgumentException("Cache size must be greater than 0");
+        }
+        if (defaultTimeout < 10_000) {
+            throw new IllegalArgumentException("Timeout must be at least 10ms");
+        }
+
+        this.maxSize = maxSize;
+        this.defaultTimeout = defaultTimeout;
+        this.cache = Collections.synchronizedMap(new LinkedHashMap<>(this.maxSize, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<K, CacheEntry<V>> eldest) {
+                return size() > maxSize;
+            }
+        });
+
+        this.scheduler = Executors.newSingleThreadScheduledExecutor();
         startCleanupTask();
     }
 
+    private void startCleanupTask() {
+        scheduler.scheduleAtFixedRate(() -> {
+            long now = System.currentTimeMillis();
+            cache.entrySet().removeIf(entry -> entry.getValue().expiryTime < now);
+        }, defaultTimeout / 6, defaultTimeout / 6, TimeUnit.MILLISECONDS);
+    }
+
     public void put(K key, V value) {
-        cache.put(key, value);
-        timestamps.put(key, System.currentTimeMillis());
+        put(key, value, defaultTimeout);
     }
 
+    @LogExecution
+    @RequestCounter
+    public void put(K key, V value, long timeout) {
+        long expiryTime = System.currentTimeMillis() + timeout;
+        cache.put(key, new CacheEntry<>(value, expiryTime));
+    }
+
+    @LogExecution
+    @RequestCounter
     public V get(K key) {
-        Long addedTime = timestamps.get(key);
-        if (addedTime == null || (System.currentTimeMillis() - addedTime > maxAgeInMillis)) {
-            remove(key);
-            return null;
+        CacheEntry<V> entry = cache.get(key);
+        if (entry != null && entry.expiryTime >= System.currentTimeMillis()) {
+            log.info("Entity with key: {} hit from cache", key);
+            return entry.value;
         }
-        return cache.get(key);
+        cache.remove(key);
+        return null;
     }
 
+    @LogExecution
     public void remove(K key) {
         cache.remove(key);
-        timestamps.remove(key);
     }
 
+    @LogExecution
     public void clear() {
         cache.clear();
     }
 
     public int size() {
         return cache.size();
-    }
-
-    private void startCleanupTask() {
-        executor.scheduleAtFixedRate(() -> {
-            long now = System.currentTimeMillis();
-            for (Map.Entry<K, Long> entry : timestamps.entrySet()) {
-                if (now - entry.getValue() > maxAgeInMillis) {
-                    remove(entry.getKey());
-                }
-            }
-        }, maxAgeInMillis, maxAgeInMillis, TimeUnit.MILLISECONDS);
     }
 }

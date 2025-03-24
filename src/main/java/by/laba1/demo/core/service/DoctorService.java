@@ -2,6 +2,9 @@ package by.laba1.demo.core.service;
 
 import by.laba1.demo.api.dto.doctor.CreateDoctorDto;
 import by.laba1.demo.api.dto.doctor.GetDoctorDto;
+import by.laba1.demo.api.error.BadRequestException;
+import by.laba1.demo.api.error.MessageException;
+import by.laba1.demo.api.error.ResourceNotFoundException;
 import by.laba1.demo.core.dao.chmem.MyCache;
 import by.laba1.demo.core.dao.doctor.DoctorRepository;
 import by.laba1.demo.core.entities.Doctor;
@@ -11,23 +14,29 @@ import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DoctorService {
     private final DoctorRepository doctorRepository;
     private final CreateDoctorMapper createDoctorMapper;
     private final GetDoctorMapper getDoctorMapper;
-    private final MyCache<String, List<GetDoctorDto>> doctorMyCache = new MyCache<>(10 * 60 * 1000L);
+    private final MyCache<String, List<GetDoctorDto>> doctorMyCache = new MyCache<>(2, 60_000);
 
     public GetDoctorDto create(CreateDoctorDto dto) {
-        Doctor doctor = createDoctorMapper.toEntity(dto);
-        Doctor savedDoctor = doctorRepository.save(doctor);
+        try {
+            Doctor doctor = createDoctorMapper.toEntity(dto);
+            Doctor savedDoctor = doctorRepository.save(doctor);
 
-        doctorMyCache.clear();
+            doctorMyCache.clear();
 
-        return getDoctorMapper.toDto(savedDoctor);
+            return getDoctorMapper.toDto(savedDoctor);
+        } catch (Exception e) {
+            throw new BadRequestException(MessageException.UNEXPECTED_ERROR);
+        }
     }
 
     public List<GetDoctorDto> getAll() {
@@ -36,11 +45,17 @@ public class DoctorService {
 
     public GetDoctorDto getById(Long id) {
         Doctor doctor = doctorRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Doctor not found"));
+            .orElseThrow(() -> new EntityNotFoundException(
+                String.format(MessageException.ENTITY_WITH_ID_NOT_FOUND, id)
+            ));
         return getDoctorMapper.toDto(doctor);
     }
 
     public List<GetDoctorDto> findAvailable(LocalDateTime appointmentTime, String specialization) {
+        if (specialization == null || specialization.isBlank()) {
+            throw new BadRequestException(MessageException.SPECIALIZATION_REQUIRED);
+        }
+
         String cacheKey = specialization + "_" + (appointmentTime != null ? appointmentTime.toString() : "null");
 
         List<GetDoctorDto> cachedDoctors = doctorMyCache.get(cacheKey);
@@ -57,18 +72,26 @@ public class DoctorService {
     }
 
     public GetDoctorDto update(Long id, CreateDoctorDto dto) {
-        Doctor doctor = doctorRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Doctor not found"));
+        try
+        {
+            Doctor doctor = doctorRepository.findById(id)
+                .orElseThrow(() ->  new EntityNotFoundException("Doctor not found with ID " + id));
 
-        createDoctorMapper.merge(doctor, dto);
-        doctor = doctorRepository.save(doctor);
+            createDoctorMapper.merge(doctor, dto);
+            doctor = doctorRepository.save(doctor);
 
-        doctorMyCache.clear();
+            doctorMyCache.clear();
 
-        return getDoctorMapper.toDto(doctor);
+            return getDoctorMapper.toDto(doctor);
+        } catch (Exception e) {
+            throw new BadRequestException(MessageException.UNEXPECTED_ERROR);
+        }
     }
 
     public void delete(Long id) {
+        if (!doctorRepository.existsById(id)) {
+            throw new ResourceNotFoundException(String.format(MessageException.ENTITY_WITH_ID_NOT_FOUND, id));
+        }
         doctorRepository.deleteById(id);
         doctorMyCache.clear();
     }

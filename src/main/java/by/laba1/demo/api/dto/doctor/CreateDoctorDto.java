@@ -5,9 +5,9 @@ import lombok.Data;
 
 @Data
 public class CreateDoctorDto {
-    @NotBlank
+    @NotBlank(message = "name is required")
     private String name;
 
-    @NotBlank
+    @NotBlank(message = "specialization is required")
     private String specialization;
 }

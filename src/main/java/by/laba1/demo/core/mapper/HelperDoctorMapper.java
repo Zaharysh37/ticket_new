@@ -1,8 +1,9 @@
 package by.laba1.demo.core.mapper;
 
+import by.laba1.demo.api.exception.ExceptionMessage;
+import by.laba1.demo.api.exception.throwble.ResourceNotFoundException;
 import by.laba1.demo.core.dao.doctor.DoctorRepository;
 import by.laba1.demo.core.entities.Doctor;
-import jakarta.persistence.EntityNotFoundException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -34,10 +35,10 @@ public class HelperDoctorMapper {
     }
 
     public Doctor mapDoctorIdToDoctor(Long doctorId) {
-        if (doctorId == null) {
-            return null;
-        }
-        return doctorRepository.findById(doctorId).orElseThrow(() -> new EntityNotFoundException("Doctor with id " + doctorId + " not found"));
+        return doctorRepository.findById(doctorId)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                ExceptionMessage.ENTITY_NOT_FOUND.format(doctorId)
+            ));
     }
 
     public Long mapDoctorToDoctorId(Doctor doctor) {

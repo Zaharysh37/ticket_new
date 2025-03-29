@@ -1,5 +1,7 @@
 package by.laba1.demo.core.mapper;
 
+import by.laba1.demo.api.exception.ExceptionMessage;
+import by.laba1.demo.api.exception.throwble.ResourceNotFoundException;
 import by.laba1.demo.core.dao.clinic.ClinicRepository;
 import by.laba1.demo.core.entities.Clinic;
 import org.springframework.stereotype.Component;
@@ -13,10 +15,10 @@ public class HelperClinicMapper {
     }
 
     public Clinic mapClinicIdToClinic(Long clinicId) {
-        if (clinicId == null) {
-            return null;
-        }
-        return clinicRepository.findById(clinicId).orElse(null);
+        return clinicRepository.findById(clinicId)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                ExceptionMessage.ENTITY_NOT_FOUND.format(clinicId)
+            ));
     }
 
     public Long mapClinicToClinicId(Clinic clinic) {

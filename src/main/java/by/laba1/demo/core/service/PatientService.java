@@ -2,18 +2,16 @@ package by.laba1.demo.core.service;
 
 import by.laba1.demo.api.dto.patient.CreatePatientDto;
 import by.laba1.demo.api.dto.patient.GetPatientDto;
-import by.laba1.demo.api.error.MessageException;
-import by.laba1.demo.api.error.ResourceNotFoundException;
+import by.laba1.demo.api.exception.ExceptionMessage;
+import by.laba1.demo.api.exception.throwble.ResourceNotFoundException;
 import by.laba1.demo.core.dao.chmem.MyCache;
 import by.laba1.demo.core.dao.patient.PatientRepository;
 import by.laba1.demo.core.entities.Patient;
 import by.laba1.demo.core.mapper.patient.CreatePatientMapper;
 import by.laba1.demo.core.mapper.patient.GetPatientMapper;
-import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -28,33 +26,22 @@ public class PatientService {
         List<Patient> patients = patientRepository.findByFilters(name, phoneNumber);
 
         if (patients.isEmpty()) {
-            throw new EntityNotFoundException(MessageException.ENTITY_WITH_CRITERIA_NOT_FOUND);
+            throw new ResourceNotFoundException(ExceptionMessage.ENTITY_WITH_CRITERIA_NOT_FOUND.getMessage());
         }
 
         return getPatientMapper.toDtos(patients);
     }
 
     public GetPatientDto getPatientById(long id) {
-        GetPatientDto cachedPatient = patientMyCache.get(id);
-        if (cachedPatient != null) {
-            return cachedPatient;
-        }
-
-        Patient patientFound = patientRepository.findById(id).orElseThrow(
-            () -> new EntityNotFoundException(
-                String.format(MessageException.ENTITY_WITH_ID_NOT_FOUND, id)
-        ));
-        GetPatientDto dto = getPatientMapper.toDto(patientFound);
-        patientMyCache.put(id, dto);
-
-        return getPatientMapper.toDto(patientFound);
+        return patientMyCache.get(id, () -> {
+            Patient patientFound = patientRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    ExceptionMessage.ENTITY_NOT_FOUND.format(id)));
+            return getPatientMapper.toDto(patientFound);
+        });
     }
 
     public GetPatientDto createPatient(CreatePatientDto dto) {
-        if (patientRepository.existsByPhoneNumber(dto.getPhoneNumber())) {
-            throw new DataIntegrityViolationException(MessageException.PHONE_NUMBER_UNIQUE + dto.getPhoneNumber());
-        }
-
         Patient patient = createPatientMapper.toEntity(dto);
         Patient savedPatient = patientRepository.save(patient);
         return getPatientMapper.toDto(savedPatient);
@@ -62,24 +49,27 @@ public class PatientService {
 
     public GetPatientDto updatePatient(long id, CreatePatientDto dto) {
         Patient patient = patientRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Patient not found with ID " + id));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                ExceptionMessage.ENTITY_NOT_FOUND.format(id)));
 
-        if (!patient.getPhoneNumber().equals(dto.getPhoneNumber()) &&
-            patientRepository.existsByPhoneNumber(dto.getPhoneNumber())) {
-            throw new DataIntegrityViolationException(MessageException.PHONE_NUMBER_UNIQUE + dto.getPhoneNumber());
-        }
-        
         createPatientMapper.merge(patient, dto);
-
         Patient updatedPatient = patientRepository.save(patient);
+        patientMyCache.clear();
         return getPatientMapper.toDto(updatedPatient);
     }
 
     public void deletePatient(long id) {
         if (!patientRepository.existsById(id)) {
-            throw new ResourceNotFoundException(String.format(MessageException.ENTITY_WITH_ID_NOT_FOUND, id));
+            throw new ResourceNotFoundException(ExceptionMessage.ENTITY_NOT_FOUND.format(id));
         }
         patientRepository.deleteById(id);
         patientMyCache.clear();
     }
 }
+
+/*
+if (!patient.getPhoneNumber().equals(dto.getPhoneNumber()) &&
+            patientRepository.existsByPhoneNumber(dto.getPhoneNumber())) {
+            throw new ConflictException(ExceptionMessage.PHONE_NUMBER_UNIQUE.format(dto.getPhoneNumber()));
+        }
+ */

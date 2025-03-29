@@ -1,5 +1,7 @@
 package by.laba1.demo.core.service.clinic;
 
+import by.laba1.demo.api.exception.ExceptionMessage;
+import by.laba1.demo.api.exception.throwble.ResourceNotFoundException;
 import by.laba1.demo.core.dao.appointment.AppointmentRepository;
 import by.laba1.demo.core.dao.doctor.DoctorRepository;
 import by.laba1.demo.core.entities.Clinic;
@@ -17,6 +19,11 @@ public class HelperClinicService {
 
     void updateDoctorsAndRemoveAppointments(Clinic clinic, Set<Long> doctorIds) {
         Set<Doctor> newDoctors = new HashSet<>(doctorRepository.findAllById(doctorIds));
+
+        if (newDoctors.size() != doctorIds.size()) {
+            throw new ResourceNotFoundException(ExceptionMessage.ENTITY_WITH_CRITERIA_NOT_FOUND.getMessage());
+        }
+
         Set<Doctor> removedDoctors = new HashSet<>(clinic.getDoctors());
         removedDoctors.removeAll(newDoctors);
 

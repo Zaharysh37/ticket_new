@@ -1,8 +1,8 @@
 package by.laba1.demo.core.service;
 
 import by.laba1.demo.api.aspects.CounterAspect;
-import by.laba1.demo.api.error.BadRequestException;
-import by.laba1.demo.api.error.ResourceNotFoundException;
+import by.laba1.demo.api.exception.throwble.BadRequestException;
+import by.laba1.demo.api.exception.throwble.ResourceNotFoundException;
 import java.io.File;
 import java.util.Map;
 import java.util.stream.Collectors;

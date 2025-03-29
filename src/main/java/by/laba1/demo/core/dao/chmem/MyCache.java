@@ -9,6 +9,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import java.util.function.Supplier;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -73,11 +74,27 @@ public class MyCache<K, V> {
     public V get(K key) {
         CacheEntry<V> entry = cache.get(key);
         if (entry != null && entry.expiryTime >= System.currentTimeMillis()) {
-            log.info("Entity with key: {} hit from cache", key);
+            log.info("Cache hit for key: {}", key);
             return entry.value;
         }
         cache.remove(key);
         return null;
+    }
+
+    @LogExecution
+    @RequestCounter
+    public V get(K key, Supplier<V> valueLoader) {
+        V value = this.get(key);
+
+        if (value != null) {
+            log.info("Cache hit for key: {}", key);
+            return value;
+        }
+
+        value = valueLoader.get();
+
+        this.put(key, value);
+        return value;
     }
 
     @LogExecution

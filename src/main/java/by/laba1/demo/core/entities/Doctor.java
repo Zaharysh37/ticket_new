@@ -1,5 +1,6 @@
 package by.laba1.demo.core.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,11 +8,16 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Entity
 @Table(name = "doctors")
@@ -26,6 +32,12 @@ public class Doctor {
 
     @Column(nullable = false)
     private String specialization;
+
+    @ManyToMany(mappedBy = "doctors", fetch = FetchType.LAZY)
+    @JsonIgnore // Игнорировать при сериализации
+    @ToString.Exclude // Не включать в toString()
+    @EqualsAndHashCode.Exclude // Не учитывать в equals() и hashCode()
+    private Set<Clinic> clinics = new HashSet<>();
 
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Appointment> appointments = new ArrayList<>();

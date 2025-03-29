@@ -23,3 +23,23 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
         @Param("specialization") String specialization
     );
 }
+
+/*
+@Query(value = """
+    SELECT d.* FROM doctors d
+    WHERE d.specialization = :specialization
+    WHERE d.id NOT IN (
+    SELECT a.doctor_id FROM appointments a
+    WHERE a.appointment_time = :appointmentTime
+    )
+""", nativeQuery = true)
+ */
+
+/*
+SELECT d.*
+FROM doctors d
+LEFT JOIN appointments a ON a.doctor_id = d.id
+    AND a.appointment_time = :appointmentTime
+WHERE d.specialization = :specialization
+AND a.id IS NULL
+ */

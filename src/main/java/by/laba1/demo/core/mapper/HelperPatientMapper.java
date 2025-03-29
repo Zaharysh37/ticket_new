@@ -1,5 +1,7 @@
 package by.laba1.demo.core.mapper;
 
+import by.laba1.demo.api.exception.ExceptionMessage;
+import by.laba1.demo.api.exception.throwble.ResourceNotFoundException;
 import by.laba1.demo.core.dao.patient.PatientRepository;
 import by.laba1.demo.core.entities.Patient;
 import java.util.Collections;
@@ -31,10 +33,10 @@ public class HelperPatientMapper {
     }
 
     public Patient mapPatientIdToPatient(Long patientId) {
-        if (patientId == null) {
-            return null;
-        }
-        return patientRepository.findById(patientId).orElse(null);
+        return patientRepository.findById(patientId)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                ExceptionMessage.ENTITY_NOT_FOUND.format(patientId)
+            ));
     }
 
     public Long mapPatientToPatientId(Patient patient) {

@@ -78,10 +78,3 @@ public class PatientService {
         patientMyCache.clear();
     }
 }
-
-/*
-if (!patient.getPhoneNumber().equals(dto.getPhoneNumber()) &&
-            patientRepository.existsByPhoneNumber(dto.getPhoneNumber())) {
-            throw new ConflictException(ExceptionMessage.PHONE_NUMBER_UNIQUE.format(dto.getPhoneNumber()));
-        }
- */

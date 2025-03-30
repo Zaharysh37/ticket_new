@@ -2,7 +2,7 @@ package by.laba1.demo.api.controller;
 
 import by.laba1.demo.api.dto.appointment.CreateAppointmentDto;
 import by.laba1.demo.api.dto.appointment.GetAppointmentDto;
-import by.laba1.demo.core.service.Appointment.AppointmentService;
+import by.laba1.demo.core.service.appointment.AppointmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

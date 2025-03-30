@@ -1,4 +1,4 @@
-package by.laba1.demo.core.service.Appointment;
+package by.laba1.demo.core.service.appointment;
 
 import by.laba1.demo.api.exception.throwble.ConflictException;
 import by.laba1.demo.api.exception.ExceptionMessage;

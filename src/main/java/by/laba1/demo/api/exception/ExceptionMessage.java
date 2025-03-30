@@ -30,7 +30,11 @@ public enum ExceptionMessage {
     OPTIMISTIC_LOCK("The resource was modified by another transaction. Please retry"),
 
     // Для кэша
-    CACHE_KEY_GENERATION_FAILED("Failed to generate cache key");
+    CACHE_KEY_GENERATION_FAILED("Failed to generate cache key"),
+
+    // Для логов
+    LOG_FILE_NOT_FOUND("Log file with date '%s' not found"),
+    STATS_UNAVAILABLE("Failed to get method statistics | exception: %s");
 
     private final String message;
 

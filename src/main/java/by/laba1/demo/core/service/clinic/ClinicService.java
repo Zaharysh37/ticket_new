@@ -5,12 +5,14 @@ import by.laba1.demo.api.dto.clinic.GetClinicDto;
 import by.laba1.demo.api.exception.throwble.ConflictException;
 import by.laba1.demo.api.exception.ExceptionMessage;
 import by.laba1.demo.api.exception.throwble.ResourceNotFoundException;
+import by.laba1.demo.core.dao.chmem.CacheFactory;
 import by.laba1.demo.core.dao.chmem.MyCache;
 import by.laba1.demo.core.dao.clinic.ClinicRepository;
 import by.laba1.demo.core.dao.doctor.DoctorRepository;
 import by.laba1.demo.core.entities.Clinic;
 import by.laba1.demo.core.mapper.clinic.CreateClinicMapper;
 import by.laba1.demo.core.mapper.clinic.GetClinicMapper;
+import jakarta.annotation.PostConstruct;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +27,17 @@ public class ClinicService {
     private final CreateClinicMapper createClinicMapper;
     private final GetClinicMapper getClinicMapper;
     private final HelperClinicService helperClinicService;
-    private final MyCache<Long, GetClinicDto> clinicMyCache = new MyCache<>(100, 120_000);
+    private final CacheFactory cacheFactory;
+    private MyCache<Long, GetClinicDto> clinicMyCache;
+
+    @PostConstruct
+    public void init() {
+        this.clinicMyCache = cacheFactory.createCache(
+            "clinicCache",
+            10,
+            120_000
+        );
+    }
 
     public GetClinicDto create(CreateClinicDto dto) {
         Clinic clinic = createClinicMapper.toEntity(dto);
@@ -55,8 +67,8 @@ public class ClinicService {
                 ExceptionMessage.ENTITY_NOT_FOUND.format(id)
             ));
 
-        helperClinicService.updateDoctorsAndRemoveAppointments(clinic, dto.getDoctorIds());
         createClinicMapper.merge(clinic, dto);
+        helperClinicService.updateDoctorsAndRemoveAppointments(clinic, dto.getDoctorIds());
 
         clinicMyCache.clear();
         return getClinicMapper.toDto(clinicRepository.save(clinic));

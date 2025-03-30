@@ -6,6 +6,7 @@ import by.laba1.demo.api.exception.throwble.BadRequestException;
 import by.laba1.demo.api.exception.ExceptionMessage;
 import by.laba1.demo.api.exception.throwble.ResourceNotFoundException;
 import by.laba1.demo.core.dao.appointment.AppointmentRepository;
+import by.laba1.demo.core.dao.chmem.CacheFactory;
 import by.laba1.demo.core.dao.chmem.MyCache;
 import by.laba1.demo.core.dao.clinic.ClinicRepository;
 import by.laba1.demo.core.dao.doctor.DoctorRepository;
@@ -13,6 +14,7 @@ import by.laba1.demo.core.dao.patient.PatientRepository;
 import by.laba1.demo.core.entities.Appointment;
 import by.laba1.demo.core.mapper.appointment.CreateAppointmentMapper;
 import by.laba1.demo.core.mapper.appointment.GetAppointmentMapper;
+import jakarta.annotation.PostConstruct;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,7 +31,17 @@ public class AppointmentService {
     private final DoctorRepository doctorRepository;
     private final ClinicRepository clinicRepository;
     private final HelperAppointmentService helperAppointmentService;
-    private final MyCache<String, List<GetAppointmentDto>> appointmentMyCache = new MyCache<>(100, 120_000);
+    private final CacheFactory cacheFactory;
+    private MyCache<String, List<GetAppointmentDto>> appointmentMyCache;
+
+    @PostConstruct
+    public void init() {
+        this.appointmentMyCache = cacheFactory.createCache(
+            "appointmentCache",
+            10,
+            120_000
+        );
+    }
 
     public GetAppointmentDto create(CreateAppointmentDto dto) {
         Appointment appointment = createAppointmentMapper.toEntity(dto);

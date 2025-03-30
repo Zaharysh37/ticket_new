@@ -11,13 +11,16 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.Data;
+import lombok.ToString;
 
 @Entity
 @Table(name = "appointments")
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 public class Appointment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @ToString.Include
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -33,6 +36,7 @@ public class Appointment {
     private Clinic clinic;
 
     @Column(nullable = false)
+    @ToString.Include
     private LocalDateTime appointmentTime;
 }
 

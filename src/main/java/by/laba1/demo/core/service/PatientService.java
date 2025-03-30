@@ -4,11 +4,13 @@ import by.laba1.demo.api.dto.patient.CreatePatientDto;
 import by.laba1.demo.api.dto.patient.GetPatientDto;
 import by.laba1.demo.api.exception.ExceptionMessage;
 import by.laba1.demo.api.exception.throwble.ResourceNotFoundException;
+import by.laba1.demo.core.dao.chmem.CacheFactory;
 import by.laba1.demo.core.dao.chmem.MyCache;
 import by.laba1.demo.core.dao.patient.PatientRepository;
 import by.laba1.demo.core.entities.Patient;
 import by.laba1.demo.core.mapper.patient.CreatePatientMapper;
 import by.laba1.demo.core.mapper.patient.GetPatientMapper;
+import jakarta.annotation.PostConstruct;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +22,17 @@ public class PatientService {
     private final PatientRepository patientRepository;
     private final CreatePatientMapper createPatientMapper;
     private final GetPatientMapper getPatientMapper;
-    private final MyCache<Long, GetPatientDto> patientMyCache = new MyCache<>(10, 120_000);
+    private final CacheFactory cacheFactory;
+    private MyCache<Long, GetPatientDto> patientMyCache;
+
+    @PostConstruct
+    public void init() {
+        this.patientMyCache = cacheFactory.createCache(
+            "patientCache",
+            10,
+            120_000
+        );
+    }
 
     public List<GetPatientDto> getPatientsByFilter(String name, String phoneNumber) {
         List<Patient> patients = patientRepository.findByFilters(name, phoneNumber);

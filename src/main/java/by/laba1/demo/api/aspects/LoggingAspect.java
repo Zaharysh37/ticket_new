@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class LoggingAspect {
 
-    @Pointcut("execution(* by.laba1.demo.core.service.*.*(..))")
+    @Pointcut("execution(* by.laba1.demo.core.service..*.*(..))")
     public void serviceMethods() {}
 
     @Pointcut("@annotation(by.laba1.demo.api.aspects.LogExecution)")

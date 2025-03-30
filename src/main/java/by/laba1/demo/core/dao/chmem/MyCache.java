@@ -8,19 +8,26 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
 import java.util.function.Supplier;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 @Slf4j
+@Component
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class MyCache<K, V> {
+    private final String cacheName;
     private final int maxSize;
     private final long defaultTimeout;
     private final Map<K, CacheEntry<V>> cache;
     private final ScheduledExecutorService scheduler;
+    private CacheOperations cacheOperations;
 
     @Getter
     @Setter
@@ -30,7 +37,7 @@ public class MyCache<K, V> {
         private final long expiryTime;
     }
 
-    public MyCache(int maxSize, long defaultTimeout) {
+    public MyCache(String cacheName, int maxSize, long defaultTimeout) {
         if (maxSize <= 0) {
             throw new IllegalArgumentException("Cache size must be greater than 0");
         }
@@ -38,6 +45,7 @@ public class MyCache<K, V> {
             throw new IllegalArgumentException("Timeout must be at least 10ms");
         }
 
+        this.cacheName = cacheName;
         this.maxSize = maxSize;
         this.defaultTimeout = defaultTimeout;
         this.cache = Collections.synchronizedMap(new LinkedHashMap<>(this.maxSize, 0.75f, true) {
@@ -51,6 +59,11 @@ public class MyCache<K, V> {
         startCleanupTask();
     }
 
+    @Autowired
+    public void setCacheOperations(CacheOperations cacheOperations) {
+        this.cacheOperations = cacheOperations;
+    }
+
     private void startCleanupTask() {
         scheduler.scheduleAtFixedRate(() -> {
             long now = System.currentTimeMillis();
@@ -58,6 +71,8 @@ public class MyCache<K, V> {
         }, defaultTimeout / 6, defaultTimeout / 6, TimeUnit.MILLISECONDS);
     }
 
+    @LogExecution
+    @RequestCounter
     public void put(K key, V value) {
         put(key, value, defaultTimeout);
     }
@@ -67,6 +82,8 @@ public class MyCache<K, V> {
     public void put(K key, V value, long timeout) {
         long expiryTime = System.currentTimeMillis() + timeout;
         cache.put(key, new CacheEntry<>(value, expiryTime));
+        log.info("In Cache '{}' put value '{}' | for key: '{}'",
+            cacheName, value, key);
     }
 
     @LogExecution
@@ -74,10 +91,11 @@ public class MyCache<K, V> {
     public V get(K key) {
         CacheEntry<V> entry = cache.get(key);
         if (entry != null && entry.expiryTime >= System.currentTimeMillis()) {
-            log.info("Cache hit for key: {}", key);
+            log.info("Cache '{}' hit for key: '{}'", cacheName, key);
             return entry.value;
         }
         cache.remove(key);
+        log.info("Cache '{}' already haven't got key: '{}'", cacheName, key);
         return null;
     }
 
@@ -87,22 +105,23 @@ public class MyCache<K, V> {
         V value = this.get(key);
 
         if (value != null) {
-            log.info("Cache hit for key: {}", key);
             return value;
         }
 
         value = valueLoader.get();
 
-        this.put(key, value);
+        cacheOperations.put(this, key, value);
         return value;
     }
 
     @LogExecution
+    @RequestCounter
     public void remove(K key) {
         cache.remove(key);
     }
 
     @LogExecution
+    @RequestCounter
     public void clear() {
         cache.clear();
     }

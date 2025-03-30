@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -17,6 +18,7 @@ public class HelperClinicService {
     private final AppointmentRepository appointmentRepository;
     private final DoctorRepository doctorRepository;
 
+    @Transactional
     void updateDoctorsAndRemoveAppointments(Clinic clinic, Set<Long> doctorIds) {
         Set<Doctor> newDoctors = new HashSet<>(doctorRepository.findAllById(doctorIds));
 
@@ -32,3 +34,4 @@ public class HelperClinicService {
         }
     }
 }
+

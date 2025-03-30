@@ -17,6 +17,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Entity
 @Table(name = "clinics")
@@ -38,6 +40,8 @@ public class Clinic {
         joinColumns = @JoinColumn(name = "clinic_id"),
         inverseJoinColumns = @JoinColumn(name = "doctor_id")
     )
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<Doctor> doctors = new HashSet<>();
 
     @OneToMany(mappedBy = "clinic", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

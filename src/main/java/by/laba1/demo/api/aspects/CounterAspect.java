@@ -25,7 +25,7 @@ public class CounterAspect {
         String methodName = joinPoint.getSignature().toShortString();
         methodCallCount.putIfAbsent(methodName, new AtomicInteger(0));
         int count = methodCallCount.get(methodName).incrementAndGet();
-        log.info("Method {} called {} times", methodName, count);
+        log.info("Method '{}' called {} times", methodName, count);
     }
 
     public void resetStatistics() {

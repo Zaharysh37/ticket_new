@@ -6,12 +6,14 @@ import by.laba1.demo.api.exception.throwble.BadRequestException;
 import by.laba1.demo.api.exception.throwble.ConflictException;
 import by.laba1.demo.api.exception.ExceptionMessage;
 import by.laba1.demo.api.exception.throwble.ResourceNotFoundException;
+import by.laba1.demo.core.dao.chmem.CacheFactory;
 import by.laba1.demo.core.dao.chmem.MyCache;
 import by.laba1.demo.core.dao.clinic.ClinicRepository;
 import by.laba1.demo.core.dao.doctor.DoctorRepository;
 import by.laba1.demo.core.entities.Doctor;
 import by.laba1.demo.core.mapper.doctor.CreateDoctorMapper;
 import by.laba1.demo.core.mapper.doctor.GetDoctorMapper;
+import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +27,17 @@ public class DoctorService {
     private final ClinicRepository clinicRepository;
     private final CreateDoctorMapper createDoctorMapper;
     private final GetDoctorMapper getDoctorMapper;
-    private final MyCache<String, List<GetDoctorDto>> doctorMyCache = new MyCache<>(2, 60_000);
+    private final CacheFactory cacheFactory;
+    private MyCache<String, List<GetDoctorDto>> doctorMyCache;
+
+    @PostConstruct
+    public void init() {
+        this.doctorMyCache = cacheFactory.createCache(
+            "doctorCache",
+            2,
+            60_000
+        );
+    }
 
     public GetDoctorDto create(CreateDoctorDto dto) {
         Doctor doctor = createDoctorMapper.toEntity(dto);

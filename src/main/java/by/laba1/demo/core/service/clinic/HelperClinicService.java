@@ -19,7 +19,7 @@ public class HelperClinicService {
     private final DoctorRepository doctorRepository;
 
     @Transactional
-    void updateDoctorsAndRemoveAppointments(Clinic clinic, Set<Long> doctorIds) {
+    public void updateDoctorsAndRemoveAppointments(Clinic clinic, Set<Long> doctorIds) {
         Set<Doctor> newDoctors = new HashSet<>(doctorRepository.findAllById(doctorIds));
 
         if (newDoctors.size() != doctorIds.size()) {

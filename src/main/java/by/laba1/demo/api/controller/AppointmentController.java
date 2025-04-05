@@ -40,6 +40,19 @@ public class AppointmentController {
         return appointmentService.create(dto);
     }
 
+    @Operation(summary = "Создать несколько записей")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Записи успешно созданы"),
+        @ApiResponse(responseCode = "400", description = "Невалидные данные"),
+        @ApiResponse(responseCode = "404", description = "Врач/пациент/клиника не найдены"),
+        @ApiResponse(responseCode = "409", description = "Конфликт времени записи")
+    })
+    @PostMapping("/bulk")
+    @ResponseStatus(HttpStatus.CREATED)
+    public List<GetAppointmentDto> createBulk(@RequestBody @Valid List<CreateAppointmentDto> dtos) {
+        return appointmentService.createBulk(dtos);
+    }
+
     @Operation(summary = "Получить все записи")
     @GetMapping
     public List<GetAppointmentDto> getAll() {

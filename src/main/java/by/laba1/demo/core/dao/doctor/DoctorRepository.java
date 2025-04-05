@@ -15,7 +15,7 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
         SELECT a
         FROM Appointment AS a
         WHERE a.doctor = d
-        AND a.appointmentTime = :appointmentTime
+        AND a.appointmentTime = :appointmentTime 
         )
     """)
     List<Doctor> findAvailableDoctors(

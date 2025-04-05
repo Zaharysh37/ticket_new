@@ -4,8 +4,6 @@ import by.laba1.demo.api.exception.throwble.BadRequestException;
 import by.laba1.demo.api.exception.throwble.ConflictException;
 import by.laba1.demo.api.exception.throwble.MappingException;
 import by.laba1.demo.api.exception.throwble.ResourceNotFoundException;
-import by.laba1.demo.api.exception.throwble.TooManyRequestsException;
-import by.laba1.demo.api.exception.throwble.UnprocessableEntityException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import java.nio.file.AccessDeniedException;
@@ -31,7 +29,7 @@ public class GlobalExceptionHandler {
     private static final String ERROR_FIELD = "error";
     private static final String ERRORS_FIELD = "errors";
 
-    // Базовые методы для формирования ответа
+    // методы для формирования ответа
     private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String message) {
         return ResponseEntity.status(status).body(Map.of(ERROR_FIELD, message));
     }
@@ -114,23 +112,6 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, "Invalid date/time format. Expected format: " + ex.getParsedString());
     }
 
-    // 401 Unauthorized / 403 Forbidden - Ошибки аутентификации/авторизации
-    /**
-     * Обработка отсутствия необходимых прав доступа
-     */
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<Map<String, Object>> handleAccessDeniedException(AccessDeniedException ex) {
-        return buildResponse(HttpStatus.FORBIDDEN, "Access denied");
-    }
-
-    /**
-     * Обработка ошибок аутентификации
-     */
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<Map<String, Object>> handleAuthenticationException(AuthenticationException ex) {
-        return buildResponse(HttpStatus.UNAUTHORIZED, "Authentication failed");
-    }
-
     // 404 Not Found - Ресурс не найден
     /**
      * Обработка случаев, когда запрашиваемый ресурс не найден
@@ -159,24 +140,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<Map<String, Object>> handleConflictException(ConflictException ex) {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage());
-    }
-
-    // 422 Unprocessable Entity - Семантические ошибки
-    /**
-     * Обработка семантически некорректных запросов (RFC 4918)
-     */
-    @ExceptionHandler(UnprocessableEntityException.class)
-    public ResponseEntity<Map<String, Object>> handleUnprocessableEntityException(UnprocessableEntityException ex) {
-        return buildResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
-    }
-
-    // 429 Too Many Requests - Лимит запросов
-    /**
-     * Обработка превышения лимита запросов
-     */
-    @ExceptionHandler(TooManyRequestsException.class)
-    public ResponseEntity<Map<String, Object>> handleTooManyRequestsException(TooManyRequestsException ex) {
-        return buildResponse(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
     }
 
     // 500 Internal Server Error - Серверные ошибки

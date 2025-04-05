@@ -51,6 +51,26 @@ public class AppointmentService {
         return getAppointmentMapper.toDto(savedAppointment);
     }
 
+    @Transactional
+    public List<GetAppointmentDto> createBulk(List<CreateAppointmentDto> dtos) {
+
+        if (dtos == null || dtos.isEmpty()) {
+            throw new BadRequestException("Appointments list cannot be empty");
+        }
+
+        List<Appointment> appointments = dtos.stream()
+            .map(dto -> {
+                Appointment appointment = createAppointmentMapper.toEntity(dto);
+                helperAppointmentService.validateAppointment(appointment);
+                return appointment;
+            })
+            .toList();
+
+        List<Appointment> savedAppointments = appointmentRepository.saveAll(appointments);
+        appointmentMyCache.clear();
+        return getAppointmentMapper.toDtos(appointments);
+    }
+
     @Transactional(readOnly = true)
     public List<GetAppointmentDto> getAll() {
         return getAppointmentMapper.toDtos(appointmentRepository.findAll());

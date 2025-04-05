@@ -6,6 +6,7 @@ import by.laba1.demo.api.exception.throwble.BadRequestException;
 import by.laba1.demo.api.exception.throwble.ConflictException;
 import by.laba1.demo.api.exception.ExceptionMessage;
 import by.laba1.demo.api.exception.throwble.ResourceNotFoundException;
+import by.laba1.demo.api.exception.throwble.ValidationException;
 import by.laba1.demo.core.dao.chmem.CacheFactory;
 import by.laba1.demo.core.dao.chmem.MyCache;
 import by.laba1.demo.core.dao.clinic.ClinicRepository;
@@ -106,7 +107,7 @@ public class DoctorService {
         try {
             return specialization + "_" + (appointmentTime != null ? appointmentTime.toString() : "null");
         } catch (Exception e) {
-            throw new IllegalStateException(ExceptionMessage.CACHE_KEY_GENERATION_FAILED.format());
+            throw new ValidationException(ExceptionMessage.CACHE_KEY_GENERATION_FAILED.format());
         }
     }
 }

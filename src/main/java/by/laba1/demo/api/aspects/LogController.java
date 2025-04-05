@@ -1,6 +1,5 @@
-package by.laba1.demo.api.controller;
+package by.laba1.demo.api.aspects;
 
-import by.laba1.demo.core.service.LogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

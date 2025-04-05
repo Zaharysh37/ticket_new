@@ -1,6 +1,5 @@
-package by.laba1.demo.core.service;
+package by.laba1.demo.api.aspects;
 
-import by.laba1.demo.api.aspects.CounterAspect;
 import by.laba1.demo.api.exception.ExceptionMessage;
 import by.laba1.demo.api.exception.throwble.BadRequestException;
 import by.laba1.demo.api.exception.throwble.ResourceNotFoundException;

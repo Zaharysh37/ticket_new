@@ -42,6 +42,7 @@ public class ClinicService {
     public GetClinicDto create(CreateClinicDto dto) {
         Clinic clinic = createClinicMapper.toEntity(dto);
         Clinic savedClinic = clinicRepository.save(clinic);
+        clinicMyCache.clear();
         return getClinicMapper.toDto(savedClinic);
     }
 

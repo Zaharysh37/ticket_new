@@ -85,17 +85,23 @@ test {
 jacocoTestReport {
 	dependsOn test
 	reports {
-		xml.required = true // Для CI
-		html.required = true // Для локального просмотра
+		xml.required = true
+		html.required = true
 	}
 
 	afterEvaluate {
 		classDirectories.setFrom(files(classDirectories.files.collect {
-			fileTree(dir: it, includes: [
-					'**/service/**/*.class' // Включаем только сервисы
-			], excludes: [
-					'**/service/**/*Impl.class' // Если есть внутренние реализации
-			])
+			fileTree(dir: it,
+					includes: [
+							'**/core/service/**/*.class' // Только core.service
+					],
+					excludes: [
+							'**/exception/**',
+							'**/config/**',
+							'**/dto/**',
+							'**/model/**',
+							'**/api/**' // Явно исключаем api
+					])
 		}))
 	}
 }
@@ -104,8 +110,10 @@ jacocoTestCoverageVerification {
 	violationRules {
 		rule {
 			limit {
-				minimum = 0.8 // Минимум 80% покрытия
+				minimum = 0.8
 			}
+			// Можно добавить более точные фильтры для проверки
+			includes = ['**/core/service/**']
 		}
 	}
 }

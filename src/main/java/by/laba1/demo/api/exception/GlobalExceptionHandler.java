@@ -6,16 +6,13 @@ import by.laba1.demo.api.exception.throwble.MappingException;
 import by.laba1.demo.api.exception.throwble.ResourceNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
-import java.nio.file.AccessDeniedException;
 import java.time.format.DateTimeParseException;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.naming.AuthenticationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -167,13 +164,5 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
         return buildResponse(HttpStatus.METHOD_NOT_ALLOWED,
             String.format("Method %s is not supported for this endpoint", ex.getMethod()));
-    }
-
-    /**
-     * Обработка ошибок оптимистичной блокировки
-     */
-    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
-    public ResponseEntity<Map<String, Object>> handleOptimisticLocking(ObjectOptimisticLockingFailureException ex) {
-        return buildResponse(HttpStatus.CONFLICT, "The resource was modified by another transaction. Please retry.");
     }
 }

@@ -8,9 +8,6 @@ import by.laba1.demo.api.exception.throwble.ResourceNotFoundException;
 import by.laba1.demo.core.dao.appointment.AppointmentRepository;
 import by.laba1.demo.core.dao.chmem.CacheFactory;
 import by.laba1.demo.core.dao.chmem.MyCache;
-import by.laba1.demo.core.dao.clinic.ClinicRepository;
-import by.laba1.demo.core.dao.doctor.DoctorRepository;
-import by.laba1.demo.core.dao.patient.PatientRepository;
 import by.laba1.demo.core.entities.Appointment;
 import by.laba1.demo.core.mapper.appointment.CreateAppointmentMapper;
 import by.laba1.demo.core.mapper.appointment.GetAppointmentMapper;
@@ -27,9 +24,6 @@ public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final CreateAppointmentMapper createAppointmentMapper;
     private final GetAppointmentMapper getAppointmentMapper;
-    private final PatientRepository patientRepository;
-    private final DoctorRepository doctorRepository;
-    private final ClinicRepository clinicRepository;
     private final HelperAppointmentService helperAppointmentService;
     private final CacheFactory cacheFactory;
     private MyCache<String, List<GetAppointmentDto>> appointmentMyCache;
@@ -68,7 +62,7 @@ public class AppointmentService {
 
         List<Appointment> savedAppointments = appointmentRepository.saveAll(appointments);
         appointmentMyCache.clear();
-        return getAppointmentMapper.toDtos(appointments);
+        return getAppointmentMapper.toDtos(savedAppointments);
     }
 
     @Transactional(readOnly = true)

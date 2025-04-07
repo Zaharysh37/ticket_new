@@ -1,5 +1,6 @@
-package by.laba1.demo.api.aspects;
+package by.laba1.demo.core.interceptor;
 
+import by.laba1.demo.api.aspects.CounterAspect;
 import by.laba1.demo.api.exception.ExceptionMessage;
 import by.laba1.demo.api.exception.throwble.BadRequestException;
 import by.laba1.demo.api.exception.throwble.ResourceNotFoundException;
@@ -20,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class LogService {
+public class LogInterceptor {
     private final CounterAspect counterAspect;
     private static final String LOG_DIR = "logs/";
     private static final String LOG_PREFIX = "app.";

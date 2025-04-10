@@ -15,14 +15,17 @@ import by.laba1.demo.core.entities.Doctor;
 import by.laba1.demo.core.mapper.doctor.CreateDoctorMapper;
 import by.laba1.demo.core.mapper.doctor.GetDoctorMapper;
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 @Service
 @RequiredArgsConstructor
+@Validated
 public class DoctorService {
     private final DoctorRepository doctorRepository;
     private final ClinicRepository clinicRepository;
@@ -40,7 +43,7 @@ public class DoctorService {
         );
     }
 
-    public GetDoctorDto create(CreateDoctorDto dto) {
+    public GetDoctorDto create(@Valid CreateDoctorDto dto) {
         Doctor doctor = createDoctorMapper.toEntity(dto);
         Doctor savedDoctor = doctorRepository.save(doctor);
         doctorMyCache.clear();
@@ -74,7 +77,7 @@ public class DoctorService {
         });
     }
 
-    public GetDoctorDto update(Long id, CreateDoctorDto dto) {
+    public GetDoctorDto update(Long id, @Valid CreateDoctorDto dto) {
         Doctor doctor = doctorRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(
                 ExceptionMessage.ENTITY_NOT_FOUND.format(id)

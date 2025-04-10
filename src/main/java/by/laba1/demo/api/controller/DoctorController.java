@@ -39,7 +39,7 @@ public class DoctorController {
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public GetDoctorDto create(@RequestBody @Valid CreateDoctorDto dto) {
+    public GetDoctorDto create(@RequestBody CreateDoctorDto dto) {
         return doctorService.create(dto);
     }
 
@@ -74,7 +74,6 @@ public class DoctorController {
         @RequestParam(required = false)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
         LocalDateTime appointmentTime,
-
         @Parameter(description = "Специализация", required = true, example = "Кардиолог")
         @RequestParam String specialization) {
         return doctorService.findAvailable(appointmentTime, specialization);
@@ -90,8 +89,7 @@ public class DoctorController {
     public GetDoctorDto update(
         @Parameter(description = "ID врача", example = "1")
         @PathVariable long id,
-
-        @RequestBody @Valid CreateDoctorDto dto) {
+        @RequestBody CreateDoctorDto dto) {
         return doctorService.update(id, dto);
     }
 

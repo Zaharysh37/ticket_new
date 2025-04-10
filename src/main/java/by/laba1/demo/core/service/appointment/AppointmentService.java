@@ -12,14 +12,17 @@ import by.laba1.demo.core.entities.Appointment;
 import by.laba1.demo.core.mapper.appointment.CreateAppointmentMapper;
 import by.laba1.demo.core.mapper.appointment.GetAppointmentMapper;
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Validated
 public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final CreateAppointmentMapper createAppointmentMapper;
@@ -37,7 +40,7 @@ public class AppointmentService {
         );
     }
 
-    public GetAppointmentDto create(CreateAppointmentDto dto) {
+    public GetAppointmentDto create(@Valid CreateAppointmentDto dto) {
         Appointment appointment = createAppointmentMapper.toEntity(dto);
         helperAppointmentService.validateAppointment(appointment);
         Appointment savedAppointment = appointmentRepository.save(appointment);
@@ -46,7 +49,7 @@ public class AppointmentService {
     }
 
     @Transactional
-    public List<GetAppointmentDto> createBulk(List<CreateAppointmentDto> dtos) {
+    public List<GetAppointmentDto> createBulk(@Valid List<CreateAppointmentDto> dtos) {
 
         if (dtos == null || dtos.isEmpty()) {
             throw new BadRequestException("Appointments list cannot be empty");

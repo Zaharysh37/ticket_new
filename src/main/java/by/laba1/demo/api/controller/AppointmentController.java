@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -36,7 +35,7 @@ public class AppointmentController {
         @ApiResponse(responseCode = "409", description = "Конфликт времени записи")
     })
     @PostMapping
-    public GetAppointmentDto create(@RequestBody @Valid CreateAppointmentDto dto) {
+    public GetAppointmentDto create(@RequestBody CreateAppointmentDto dto) {
         return appointmentService.create(dto);
     }
 
@@ -49,7 +48,7 @@ public class AppointmentController {
     })
     @PostMapping("/bulk")
     @ResponseStatus(HttpStatus.CREATED)
-    public List<GetAppointmentDto> createBulk(@RequestBody @Valid List<CreateAppointmentDto> dtos) {
+    public List<GetAppointmentDto> createBulk(@RequestBody List<CreateAppointmentDto> dtos) {
         return appointmentService.createBulk(dtos);
     }
 

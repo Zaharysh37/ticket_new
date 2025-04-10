@@ -67,7 +67,7 @@ public class PatientController {
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public GetPatientDto create(@RequestBody @Valid CreatePatientDto dto) {
+    public GetPatientDto create(@RequestBody CreatePatientDto dto) {
         return patientService.createPatient(dto);
     }
 
@@ -82,8 +82,7 @@ public class PatientController {
     public GetPatientDto update(
         @Parameter(description = "ID пациента", example = "1")
         @PathVariable long id,
-
-        @RequestBody @Valid CreatePatientDto dto) {
+        @RequestBody CreatePatientDto dto) {
         return patientService.updatePatient(id, dto);
     }
 

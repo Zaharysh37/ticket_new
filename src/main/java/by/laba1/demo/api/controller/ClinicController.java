@@ -37,7 +37,7 @@ public class ClinicController {
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public GetClinicDto create(@RequestBody @Valid CreateClinicDto dto) {
+    public GetClinicDto create(@RequestBody CreateClinicDto dto) {
         return clinicService.create(dto);
     }
 
@@ -70,7 +70,7 @@ public class ClinicController {
     public GetClinicDto update(
         @Parameter(description = "ID клиники", example = "1")
         @PathVariable long id,
-        @RequestBody @Valid CreateClinicDto dto) {
+        @RequestBody CreateClinicDto dto) {
         return clinicService.update(id, dto);
     }
 

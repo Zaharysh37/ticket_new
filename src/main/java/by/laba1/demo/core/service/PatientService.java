@@ -11,13 +11,16 @@ import by.laba1.demo.core.entities.Patient;
 import by.laba1.demo.core.mapper.patient.CreatePatientMapper;
 import by.laba1.demo.core.mapper.patient.GetPatientMapper;
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
+@Validated
 public class PatientService {
     private final PatientRepository patientRepository;
     private final CreatePatientMapper createPatientMapper;
@@ -53,13 +56,13 @@ public class PatientService {
         });
     }
 
-    public GetPatientDto createPatient(CreatePatientDto dto) {
+    public GetPatientDto createPatient(@Valid CreatePatientDto dto) {
         Patient patient = createPatientMapper.toEntity(dto);
         Patient savedPatient = patientRepository.save(patient);
         return getPatientMapper.toDto(savedPatient);
     }
 
-    public GetPatientDto updatePatient(long id, CreatePatientDto dto) {
+    public GetPatientDto updatePatient(long id, @Valid CreatePatientDto dto) {
         Patient patient = patientRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(
                 ExceptionMessage.ENTITY_NOT_FOUND.format(id)));

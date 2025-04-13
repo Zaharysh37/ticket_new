@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -126,6 +127,12 @@ class AppointmentServiceTest {
     }
 
     @Test
+    void createBulk_WhenNull_ShouldThrowException() {
+        assertThrows(BadRequestException.class,
+            () -> appointmentService.createBulk(null));
+    }
+
+    @Test
     void getAll_ShouldReturnAllAppointments() {
         when(appointmentRepository.findAll()).thenReturn(List.of(appointment));
         when(getAppointmentMapper.toDtos(List.of(appointment))).thenReturn(List.of(getAppointmentDto));
@@ -173,7 +180,7 @@ class AppointmentServiceTest {
     }
 
     @Test
-    void findByPatientName_ShouldReturnAppointmentsFromCache() {
+    void findByPatientName_ShouldReturnAppointmentsFromRepository() {
         when(appointmentMyCache.get(eq(patientName), any())).thenAnswer(invocation -> {
             Supplier<List<GetAppointmentDto>> supplier = invocation.getArgument(1);
             return supplier.get();
@@ -188,9 +195,30 @@ class AppointmentServiceTest {
     }
 
     @Test
+    void findByPatientName_WhenDataInCache_ShouldNotCallRepository() {
+        List<GetAppointmentDto> cachedAppointments = List.of(getAppointmentDto);
+
+        when(appointmentMyCache.get(eq(patientName), any()))
+            .thenReturn(cachedAppointments);
+
+        List<GetAppointmentDto> result = appointmentService.findByPatientName(patientName);
+
+        assertEquals(1, result.size());
+        assertEquals(getAppointmentDto, result.get(0));
+        verify(appointmentMyCache).get(eq(patientName), any());
+        verify(appointmentRepository, never()).findByPatientName(any());
+    }
+
+    @Test
     void findByPatientName_WhenNameBlank_ShouldThrowException() {
         assertThrows(BadRequestException.class,
             () -> appointmentService.findByPatientName(" "));
+    }
+
+    @Test
+    void findByPatientName_WhenNameIsNull_ShouldThrowException() {
+        assertThrows(BadRequestException.class,
+            () -> appointmentService.findByPatientName(null));
     }
 
     @Test

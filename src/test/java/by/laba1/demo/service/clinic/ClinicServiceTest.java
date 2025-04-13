@@ -25,7 +25,6 @@ import by.laba1.demo.core.mapper.clinic.CreateClinicMapper;
 import by.laba1.demo.core.mapper.clinic.GetClinicMapper;
 import by.laba1.demo.core.service.clinic.ClinicService;
 import by.laba1.demo.core.service.clinic.HelperClinicService;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -133,7 +132,7 @@ class ClinicServiceTest {
     }
 
     @Test
-    void getById_ShouldReturnClinicFromCache() {
+    void getById_ShouldReturnClinicFromRepository() {
         when(clinicMyCache.get(eq(clinicId), any())).thenAnswer(invocation -> {
             Supplier<GetClinicDto> supplier = invocation.getArgument(1);
             return supplier.get();
@@ -145,6 +144,17 @@ class ClinicServiceTest {
 
         assertEquals(getClinicDto, result);
         verify(clinicMyCache).get(eq(clinicId), any());
+    }
+
+    @Test
+    void getById_WhenDataInCache_ShouldNotCallRepository() {
+        when(clinicMyCache.get(eq(clinicId), any())).thenReturn(getClinicDto);
+
+        GetClinicDto result = clinicService.getById(clinicId);
+
+        assertEquals(getClinicDto, result);
+        verify(clinicMyCache).get(eq(clinicId), any());
+        verify(clinicRepository, never()).findById(any());
     }
 
     @Test

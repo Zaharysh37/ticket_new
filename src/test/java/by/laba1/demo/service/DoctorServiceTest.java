@@ -160,9 +160,51 @@ class DoctorServiceTest {
     }
 
     @Test
+    void findAvailable_WhenAppointmentTimeIsNull_ShouldReturnAvailableDoctors() {
+        LocalDateTime nullTime = null;
+        String cacheKey = specialization + "_" + "null";
+
+        when(doctorRepository.findAvailableDoctors(nullTime, specialization))
+            .thenReturn(List.of(doctor));
+        when(getDoctorMapper.toDtos(List.of(doctor))).thenReturn(List.of(getDoctorDto));
+        when(doctorMyCache.get(eq(cacheKey), any())).thenAnswer(invocation -> {
+            Supplier<List<GetDoctorDto>> supplier = invocation.getArgument(1);
+            return supplier.get();
+        });
+
+        List<GetDoctorDto> result = doctorService.findAvailable(nullTime, specialization);
+
+        assertEquals(1, result.size());
+        assertEquals(getDoctorDto, result.get(0));
+        verify(doctorMyCache).get(eq(cacheKey), any());
+    }
+
+    @Test
+    void findAvailable_WhenDataInCache_ShouldNotCallRepository() {
+        String cacheKey = specialization + "_" + time.toString();
+        List<GetDoctorDto> cachedDoctors = List.of(getDoctorDto);
+
+        when(doctorMyCache.get(eq(cacheKey), any()))
+            .thenReturn(cachedDoctors);
+
+        List<GetDoctorDto> result = doctorService.findAvailable(time, specialization);
+
+        assertEquals(1, result.size());
+        assertEquals(getDoctorDto, result.get(0));
+        verify(doctorMyCache).get(eq(cacheKey), any());
+        verify(doctorRepository, never()).findAvailableDoctors(any(), any());
+    }
+
+    @Test
+    void findAvailable_WhenSpecializationIsNull_ShouldThrowException() {
+        assertThrows(BadRequestException.class,
+            () -> doctorService.findAvailable(time, null));
+    }
+
+    @Test
     void findAvailable_WhenSpecializationBlank_ShouldThrowException() {
         assertThrows(BadRequestException.class,
-            () -> doctorService.findAvailable(LocalDateTime.now(), " "));
+            () -> doctorService.findAvailable(time, ""));
     }
 
     @Test

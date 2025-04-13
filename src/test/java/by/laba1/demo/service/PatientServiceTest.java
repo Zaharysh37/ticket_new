@@ -110,7 +110,7 @@ class PatientServiceTest {
     }
 
     @Test
-    void getPatientById_ShouldReturnPatientFromCache() {
+    void getPatientById_ShouldReturnPatientFromRepository() {
         when(patientMyCache.get(eq(patientId), any())).thenAnswer(invocation -> {
             Supplier<GetPatientDto> supplier = invocation.getArgument(1);
             return supplier.get();
@@ -122,6 +122,17 @@ class PatientServiceTest {
 
         assertEquals(getPatientDto, result);
         verify(patientMyCache).get(eq(patientId), any());
+    }
+
+    @Test
+    void getPatientById_WhenDataInCache_ShouldNotCallRepository() {
+        when(patientMyCache.get(eq(patientId), any())).thenReturn(getPatientDto);
+
+        GetPatientDto result = patientService.getPatientById(patientId);
+
+        assertEquals(getPatientDto, result);
+        verify(patientMyCache).get(eq(patientId), any());
+        verify(patientRepository, never()).findById(any());
     }
 
     @Test

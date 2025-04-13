@@ -8,6 +8,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import java.time.format.DateTimeParseException;
 import java.util.Map;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -164,5 +165,23 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
         return buildResponse(HttpStatus.METHOD_NOT_ALLOWED,
             String.format("Method %s is not supported for this endpoint", ex.getMethod()));
+    }
+
+    /**
+     * Обработка ошибок из асинхронных методов (@Async)
+     */
+    @ExceptionHandler(CompletionException.class)
+    public ResponseEntity<Map<String, Object>> handleCompletionException(CompletionException ex) {
+        Throwable cause = ex.getCause();
+        if (cause instanceof BadRequestException) {
+            return handleBadRequestException((BadRequestException) cause);
+        }
+        if (cause instanceof ResourceNotFoundException) {
+            return handleResourceNotFoundException((ResourceNotFoundException) cause);
+        }
+        if (cause instanceof DateTimeParseException) {
+            return handleDateTimeParseException((DateTimeParseException) cause);
+        }
+        return handleGeneralException(ex);
     }
 }

@@ -33,7 +33,7 @@ public class LoggingAspect {
             log.info("<< Method: {} | Execution time: {} ms | Result: {}", methodName, duration, result);
             return result;
         } catch (Exception e) {
-            log.error("!! Exception in {}: {}", methodName, e.getMessage(), e);
+            log.error("!! Exception in {}: {}", methodName, e.getMessage());
             throw e;
         }
     }

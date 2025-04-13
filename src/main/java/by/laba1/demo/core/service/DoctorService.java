@@ -6,7 +6,6 @@ import by.laba1.demo.api.exception.throwble.BadRequestException;
 import by.laba1.demo.api.exception.throwble.ConflictException;
 import by.laba1.demo.api.exception.ExceptionMessage;
 import by.laba1.demo.api.exception.throwble.ResourceNotFoundException;
-import by.laba1.demo.api.exception.throwble.ValidationException;
 import by.laba1.demo.core.dao.chmem.CacheFactory;
 import by.laba1.demo.core.dao.chmem.MyCache;
 import by.laba1.demo.core.dao.clinic.ClinicRepository;
@@ -67,7 +66,7 @@ public class DoctorService {
             throw new BadRequestException(ExceptionMessage.FIELD_REQUIRED.getMessage());
         }
 
-        String cacheKey = generateCacheKey(specialization, appointmentTime);
+        String cacheKey = specialization + "_" + (appointmentTime != null ? appointmentTime.toString() : "null");
         return doctorMyCache.get(cacheKey, () -> {
             List<Doctor> doctors = doctorRepository.findAvailableDoctors(appointmentTime, specialization);
             if (doctors.isEmpty()) {
@@ -104,13 +103,5 @@ public class DoctorService {
 
         doctorRepository.delete(doctor);
         doctorMyCache.clear();
-    }
-
-    private String generateCacheKey(String specialization, LocalDateTime appointmentTime) {
-        try {
-            return specialization + "_" + (appointmentTime != null ? appointmentTime.toString() : "null");
-        } catch (Exception e) {
-            throw new ValidationException(ExceptionMessage.CACHE_KEY_GENERATION_FAILED.format());
-        }
     }
 }

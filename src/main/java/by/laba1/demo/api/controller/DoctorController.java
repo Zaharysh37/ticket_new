@@ -62,6 +62,11 @@ public class DoctorController {
         return doctorService.getById(id);
     }
 
+    @GetMapping("/clinic/{clinicId}")
+    public List<GetDoctorDto> getByClinic(@PathVariable Long clinicId) {
+        return doctorService.getByClinic(clinicId);
+    }
+
     @Operation(summary = "Поиск доступных врачей")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "OK"),

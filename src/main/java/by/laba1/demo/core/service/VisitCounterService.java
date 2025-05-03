@@ -1,4 +1,4 @@
-package by.laba1.demo.core.interceptor;
+package by.laba1.demo.core.service;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

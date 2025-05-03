@@ -1,6 +1,6 @@
 package by.laba1.demo.api.controller;
 
-import by.laba1.demo.core.interceptor.VisitCounterService;
+import by.laba1.demo.core.service.VisitCounterService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

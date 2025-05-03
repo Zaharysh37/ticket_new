@@ -1,8 +1,9 @@
-package by.laba1.demo.core.interceptor;
+package by.laba1.demo.core.service;
 
 import by.laba1.demo.api.aspects.CounterAspect;
 import by.laba1.demo.api.exception.ExceptionMessage;
 import by.laba1.demo.api.exception.throwble.BadRequestException;
+import by.laba1.demo.api.exception.throwble.ConflictException;
 import by.laba1.demo.api.exception.throwble.ResourceNotFoundException;
 import java.io.File;
 import java.io.IOException;
@@ -35,7 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class LogInterceptor {
+public class LogService {
     private final CounterAspect counterAspect;
     private static final String LOG_DIR = "logs/";
     private static final String LOG_PREFIX = "app.";
@@ -129,6 +130,8 @@ public class LogInterceptor {
             LocalDateTime finalDateTime = dateTime;
             CompletableFuture.runAsync(() -> {
                 try {
+                    Thread.sleep(20_000);
+
                     // 1. Находим все файлы логов за указанную дату/время
                     List<Path> logFiles = findLogFilesForDateTime(finalDateTime);
 
@@ -305,7 +308,7 @@ public class LogInterceptor {
                 return logDateTime.toLocalDate().equals(targetDateTime.toLocalDate());
             }
         } catch (DateTimeParseException e) {
-            log.debug("Skipping malformed log line: {}", line.substring(0, Math.min(line.length(), 50)) + "...");
+            log.debug("Skipping ... log line: {}", line.substring(0, Math.min(line.length(), 50)) + "...");
             return false;
         }
     }
@@ -337,6 +340,9 @@ public class LogInterceptor {
     }
 
     public File getTaskFile(String taskId) {
+        if ("PROCESSING".equals(taskStatuses.get(taskId))) {
+            throw new ConflictException("Log file has status \"PROCESSING\"");
+        }
         String path = taskFilePaths.get(taskId);
         return path != null ? new File(path) : null;
     }

@@ -1,5 +1,6 @@
 package by.laba1.demo.core.interceptor;
 
+import by.laba1.demo.core.service.VisitCounterService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,6 @@ public class VisitCounterInterceptor implements HandlerInterceptor {
                            ModelAndView modelAndView) {
 
         String url = request.getRequestURI();
-        // Исключаем статические ресурсы и эндпоинты статистики
         if (!url.startsWith("/static") && !url.startsWith("/api/logs/stats")) {
             visitCounterService.incrementVisitCount(url);
             log.info("Visit counted for URL: {}", url);

@@ -2,7 +2,7 @@ package by.laba1.demo.api.controller;
 
 import by.laba1.demo.api.exception.throwble.BadRequestException;
 import by.laba1.demo.api.exception.throwble.ResourceNotFoundException;
-import by.laba1.demo.core.interceptor.LogInterceptor;
+import by.laba1.demo.core.service.LogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @Tag(name = "Log API", description = "Работа с логами и статистикой")
 public class LogController {
-    private final LogInterceptor logService;
+    private final LogService logService;
 
     @Operation(summary = "Скачать лог")
     @ApiResponses({

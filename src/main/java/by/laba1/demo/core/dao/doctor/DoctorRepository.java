@@ -22,6 +22,9 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
         @Param("appointmentTime") LocalDateTime appointmentTime,
         @Param("specialization") String specialization
     );
+
+    @Query("SELECT d FROM Doctor d JOIN d.clinics c WHERE c.id = :clinicId")
+    List<Doctor> findByClinicId(@Param("clinicId") Long clinicId);
 }
 
 /*

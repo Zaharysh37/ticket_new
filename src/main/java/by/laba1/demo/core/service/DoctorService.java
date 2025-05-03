@@ -37,7 +37,7 @@ public class DoctorService {
     public void init() {
         this.doctorMyCache = cacheFactory.createCache(
             "doctorCache",
-            2,
+            10,
             60_000
         );
     }
@@ -59,6 +59,19 @@ public class DoctorService {
                 ExceptionMessage.ENTITY_NOT_FOUND.format(id)
             ));
         return getDoctorMapper.toDto(doctor);
+    }
+
+    public List<GetDoctorDto> getByClinic(Long clinicId) { //если несуществующий
+        String cacheKey = "clinic_" + clinicId;
+        return doctorMyCache.get(cacheKey, () -> {
+            List<Doctor> doctors = doctorRepository.findByClinicId(clinicId);
+            if (doctors.isEmpty()) {
+                throw new ResourceNotFoundException(
+                    ExceptionMessage.ENTITY_WITH_CRITERIA_NOT_FOUND.getMessage()
+                );
+            }
+            return getDoctorMapper.toDtos(doctors);
+        });
     }
 
     public List<GetDoctorDto> findAvailable(LocalDateTime appointmentTime, String specialization) {

@@ -80,6 +80,7 @@ public class DoctorService {
         }
 
         String cacheKey = specialization + "_" + (appointmentTime != null ? appointmentTime.toString() : "null");
+
         return doctorMyCache.get(cacheKey, () -> {
             List<Doctor> doctors = doctorRepository.findAvailableDoctors(appointmentTime, specialization);
             if (doctors.isEmpty()) {

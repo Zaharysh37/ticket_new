@@ -10,7 +10,7 @@ public class CreatePatientDto {
     private String name;
 
     @NotBlank(message = "phoneNumber is required")
-    @Pattern(regexp = "^(802[5-9]\\d{6})$",
+    @Pattern(regexp = "^(802[5-9]\\d{7})$",
         message = "Телефон должен быть в формате 8025xxxxxx-8029xxxxxx")
     private String phoneNumber;
 }

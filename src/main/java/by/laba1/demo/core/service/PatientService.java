@@ -3,6 +3,7 @@ package by.laba1.demo.core.service;
 import by.laba1.demo.api.dto.patient.CreatePatientDto;
 import by.laba1.demo.api.dto.patient.GetPatientDto;
 import by.laba1.demo.api.exception.ExceptionMessage;
+import by.laba1.demo.api.exception.throwble.ConflictException;
 import by.laba1.demo.api.exception.throwble.ResourceNotFoundException;
 import by.laba1.demo.core.dao.chmem.CacheFactory;
 import by.laba1.demo.core.dao.chmem.MyCache;
@@ -57,6 +58,10 @@ public class PatientService {
     }
 
     public GetPatientDto createPatient(@Valid CreatePatientDto dto) {
+        if (patientRepository.existsByNameAndPhoneNumber(dto.getName(), dto.getPhoneNumber())) {
+            throw new ConflictException("Пациент с таким именем и номером телефона уже существует");
+        }
+
         Patient patient = createPatientMapper.toEntity(dto);
         Patient savedPatient = patientRepository.save(patient);
         return getPatientMapper.toDto(savedPatient);
@@ -66,6 +71,10 @@ public class PatientService {
         Patient patient = patientRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(
                 ExceptionMessage.ENTITY_NOT_FOUND.format(id)));
+
+        if (patientRepository.existsByNameAndPhoneNumber(dto.getName(), dto.getPhoneNumber())) {
+            throw new ConflictException("Пациент с таким именем и номером телефона уже существует");
+        }
 
         createPatientMapper.merge(patient, dto);
         Patient updatedPatient = patientRepository.save(patient);

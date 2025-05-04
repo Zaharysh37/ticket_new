@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Modal, Form, Input, message, Spin, Popconfirm } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Table, Button, Modal, Form, Input, message, Spin, Popconfirm, Empty } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, ClearOutlined } from '@ant-design/icons';
 import {
     getDoctors,
     getDoctorById,
@@ -15,6 +15,10 @@ const DoctorsPage = () => {
     const [editingDoctorId, setEditingDoctorId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [form] = Form.useForm();
+    const [filters, setFilters] = useState({
+        name: null,
+        specialization: null
+    });
 
     useEffect(() => {
         fetchDoctors();
@@ -32,27 +36,53 @@ const DoctorsPage = () => {
         }
     };
 
+    const checkDoctorExists = (name, specialization, excludeId = null) => {
+        return doctors.some(d =>
+            d.name === name &&
+            d.specialization === specialization &&
+            d.id !== excludeId
+        );
+    };
+
     const handleCreate = async () => {
         try {
             const values = await form.validateFields();
+
+            if (checkDoctorExists(values.name, values.specialization)) {
+                message.error('Врач с такими ФИО и специализацией уже существует');
+                return;
+            }
+
+            setLoading(true);
             await createDoctor(values);
             message.success('Врач добавлен успешно');
             resetModal();
             await fetchDoctors();
         } catch (error) {
             message.error('Ошибка добавления врача');
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleUpdate = async () => {
         try {
             const values = await form.validateFields();
+
+            if (checkDoctorExists(values.name, values.specialization, editingDoctorId)) {
+                message.error('Врач с такими ФИО и специализацией уже существует');
+                return;
+            }
+
+            setLoading(true);
             await updateDoctor(editingDoctorId, values);
             message.success('Данные врача обновлены успешно');
             resetModal();
             await fetchDoctors();
         } catch (error) {
             message.error('Ошибка обновления данных врача');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -89,48 +119,108 @@ const DoctorsPage = () => {
         setIsModalVisible(false);
     };
 
+    const handleTableChange = (pagination, filters) => {
+        setFilters({
+            name: filters.name || null,
+            specialization: filters.specialization || null
+        });
+    };
+
+    const resetAllFilters = () => {
+        setFilters({
+            name: null,
+            specialization: null
+        });
+    };
+
     const columns = [
         {
-            title: 'Имя',
+            title: 'ФИО',
             dataIndex: 'name',
             key: 'name',
-            sorter: (a, b) => a.name.localeCompare(b.name),
+            width: 200,
+            filters: [...new Set(doctors.map(d => d.name))].map(name => ({
+                text: name,
+                value: name,
+            })),
+            onFilter: (value, record) => record.name === value,
+            filterSearchPlaceholder: 'Поиск',
+            filteredValue: filters.name || null,
         },
         {
             title: 'Специализация',
             dataIndex: 'specialization',
             key: 'specialization',
-            sorter: (a, b) => a.specialization.localeCompare(b.specialization),
+            width: 200,
+            filters: [...new Set(doctors.map(d => d.specialization))].map(spec => ({
+                text: spec,
+                value: spec,
+            })),
+            onFilter: (value, record) => record.specialization === value,
+            filterSearchPlaceholder: 'Поиск',
+            filteredValue: filters.specialization || null,
         },
         {
             title: 'Действия',
             key: 'actions',
-            render: (_, doctor) => (
-                <Space>
-                    <Button onClick={() => handleEdit(doctor.id)}>Изменить</Button>
+            fixed: 'right',
+            width: 55,
+            align: 'center',
+            render: (_, record) => (
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-evenly',
+                    width: '100%'
+                }}>
+                    <Button
+                        type="text"
+                        icon={<EditOutlined />}
+                        onClick={() => handleEdit(record.id)}
+                        style={{
+                            color: '#1890ff',
+                            minWidth: 24,
+                            padding: 0
+                        }}
+                    />
                     <Popconfirm
-                        title="Вы уверены, что хотите удалить этого врача?"
-                        onConfirm={() => handleDelete(doctor.id)}
+                        title="Удалить врача?"
+                        onConfirm={() => handleDelete(record.id)}
                         okText="Да"
                         cancelText="Нет"
                     >
-                        <Button danger>Удалить</Button>
+                        <Button
+                            type="text"
+                            icon={<DeleteOutlined />}
+                            style={{
+                                color: '#ff4d4f',
+                                minWidth: 24,
+                                padding: 0
+                            }}
+                        />
                     </Popconfirm>
-                </Space>
+                </div>
             ),
         },
     ];
 
     return (
         <Spin spinning={loading}>
-            <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => setIsModalVisible(true)}
-                style={{ marginBottom: 16 }}
-            >
-                Добавить врача
-            </Button>
+            <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
+                <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => setIsModalVisible(true)}
+                >
+                    Добавить врача
+                </Button>
+                <Button
+                    icon={<ClearOutlined />}
+                    onClick={resetAllFilters}
+                    disabled={!filters.name && !filters.specialization}
+                >
+                    Сбросить фильтры
+                </Button>
+            </div>
 
             <Table
                 columns={columns}
@@ -139,6 +229,13 @@ const DoctorsPage = () => {
                 loading={loading}
                 bordered
                 pagination={{ pageSize: 10 }}
+                scroll={{ x: 800 }}
+                locale={{
+                    filterReset: 'Сбросить',
+                    filterConfirm: 'ОК',
+                    emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Нет данных" />
+                }}
+                onChange={handleTableChange}
             />
 
             <Modal
@@ -153,13 +250,13 @@ const DoctorsPage = () => {
                 <Form form={form} layout="vertical">
                     <Form.Item
                         name="name"
-                        label="Имя врача"
+                        label="ФИО врача"
                         rules={[
-                            { required: true, message: 'Пожалуйста, введите имя врача!' },
-                            { min: 3, message: 'Имя должно содержать не менее 3 символов' }
+                            { required: true, message: 'Пожалуйста, введите ФИО врача!' },
+                            { min: 3, message: 'ФИО должно содержать не менее 3 символов' }
                         ]}
                     >
-                        <Input placeholder="Введите имя врача" />
+                        <Input placeholder="Введите ФИО врача" />
                     </Form.Item>
 
                     <Form.Item

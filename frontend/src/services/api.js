@@ -34,8 +34,13 @@ export const getPatientById = (id) => api.get(`/patients/${id}`).then(res => res
 export const createPatient = (patient) => api.post('/patients', patient).then(res => res.data);
 export const updatePatient = (id, patient) => api.put(`/patients/${id}`, patient).then(res => res.data);
 export const deletePatient = (id) => api.delete(`/patients/${id}`);
-export const findPatientsByFilter = (name, phoneNumber) =>
-    api.get(`/patients?name=${name || ''}&phoneNumber=${phoneNumber || ''}`).then(res => res.data);
+export const findPatientsByFilter = (name, phoneNumber) => {
+    const params = new URLSearchParams();
+    if (name) params.append('name', name);
+    if (phoneNumber) params.append('phoneNumber', phoneNumber);
+
+    return api.get(`/patients?${params.toString()}`).then(res => res.data);
+};
 
 // ================== Clinics API ==================
 export const getClinics = () => api.get('/clinics').then(res => res.data);

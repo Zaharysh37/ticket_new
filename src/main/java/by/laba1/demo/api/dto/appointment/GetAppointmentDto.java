@@ -11,6 +11,7 @@ public class GetAppointmentDto {
     private GetPatientDto patientDto;
     private GetDoctorDto doctorDto;
     private LocalDateTime appointmentTime;
+    private String clinicId;
     private String clinicName;
     private String clinicAddress;
 }

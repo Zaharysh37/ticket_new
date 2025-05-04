@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form, Input, message, Spin, Popconfirm, Select, DatePicker, Tag, Empty, AutoComplete } from 'antd';
-import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ClearOutlined } from '@ant-design/icons';
 import {
     getAppointments,
     getAppointmentById,
@@ -34,6 +34,12 @@ const AppointmentsPage = () => {
     const [form] = Form.useForm();
     const [searchValue, setSearchValue] = useState('');
     const [filteredPatients, setFilteredPatients] = useState([]);
+    const [filters, setFilters] = useState({
+        patientName: null,
+        clinicName: null,
+        doctorName: null
+    });
+    const [sortedInfo, setSortedInfo] = useState({});
 
     useEffect(() => {
         fetchInitialData();
@@ -161,7 +167,16 @@ const AppointmentsPage = () => {
 
     const handleCreate = async () => {
         try {
+            setLoading(true);
             const values = await form.validateFields();
+            console.log('Form values:', values);
+
+            // Проверка clinicId (если используется labelInValue)
+            const clinicId = values.clinicId?.value || values.clinicId;
+            if (!clinicId) {
+                message.error('Не выбрана клиника');
+                return;
+            }
 
             if (values.appointmentTime && values.appointmentTime.isBefore(moment())) {
                 message.error('Выбранное время уже прошло');
@@ -177,7 +192,7 @@ const AppointmentsPage = () => {
             await createAppointment({
                 patientId: values.patientId,
                 doctorId: values.doctorId,
-                clinicId: values.clinicId,
+                clinicId: clinicId, // Используем исправленный clinicId
                 appointmentTime: values.appointmentTime.format("YYYY-MM-DDTHH:mm:ss")
             });
 
@@ -185,23 +200,87 @@ const AppointmentsPage = () => {
             resetModal();
             await fetchInitialData();
         } catch (error) {
+            console.error('Error in handleCreate:', error);
             message.error('Ошибка при создании записи: ' + (error.response?.data?.message || error.message));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Обновлённый код для handleEdit
+    const handleEdit = async (id) => {
+        try {
+            setLoading(true);
+            // Параллельно загружаем данные приёма и клиники
+            const [appointment, clinicsData] = await Promise.all([
+                getAppointmentById(id),
+                getClinics() // Всегда загружаем актуальные клиники
+            ]);
+            setClinics(clinicsData || []);
+
+            // Устанавливаем выбранную клинику и загружаем врачей
+            setSelectedClinic(appointment.clinicId);
+            const doctors = await fetchDoctorsForClinic(appointment.clinicId);
+
+            // Находим текущего врача
+            const currentDoctor = doctors.find(d => d.id === appointment.doctorDto.id);
+
+            // Устанавливаем значения в форму
+            form.setFieldsValue({
+                patientId: appointment.patientDto.id,
+                clinicId: {
+                    value: appointment.clinicId,
+                    label: `${appointment.clinicName} (${appointment.clinicAddress})`
+                },
+                specialization: appointment.doctorDto.specialization,
+                appointmentTime: moment(appointment.appointmentTime),
+                doctorId: appointment.doctorDto.id
+            });
+
+            // Обновляем список доступных врачей
+            if (currentDoctor) {
+                setAvailableDoctors([currentDoctor]);
+            }
+
+            setEditingAppointmentId(id);
+            setIsModalVisible(true);
+        } catch (error) {
+            message.error('Ошибка при загрузке данных записи');
+            console.error(error);
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleUpdate = async () => {
         try {
             const values = await form.validateFields();
+            const originalAppointment = await getAppointmentById(editingAppointmentId);
 
-            if (values.appointmentTime && values.appointmentTime.isBefore(moment())) {
-                message.error('Выбранное время уже прошло');
-                return;
-            }
+            // Проверяем, изменилось ли время или врач
+            const isTimeChanged = !moment(originalAppointment.appointmentTime).isSame(values.appointmentTime);
+            const isDoctorChanged = originalAppointment.doctorDto.id !== values.doctorId;
 
-            const selectedDoctor = availableDoctors.find(d => d.id === values.doctorId);
-            if (!selectedDoctor) {
-                message.error('Выбранный врач недоступен в это время');
-                return;
+            // Если изменилось время или врач - проверяем доступность
+            if (isTimeChanged || isDoctorChanged) {
+                const formattedTime = values.appointmentTime.format("YYYY-MM-DDTHH:mm:ss");
+                let availableDoctorsData = await findAvailableDoctors(formattedTime, values.specialization);
+
+                // Добавляем текущего врача в список доступных (чтобы можно было оставить того же врача)
+                const currentDoctor = clinicDoctors.find(d => d.id === originalAppointment.doctorDto.id);
+                if (currentDoctor && !availableDoctorsData.some(d => d.id === currentDoctor.id)) {
+                    availableDoctorsData = [...availableDoctorsData, currentDoctor];
+                }
+
+                const isAvailable = availableDoctorsData.some(doc =>
+                    doc.id === values.doctorId &&
+                    clinicDoctors.some(cd => cd.id === doc.id)
+                );
+
+                if (!isAvailable) {
+                    message.error('Выбранный врач недоступен в это время');
+                    return;
+                }
             }
 
             await updateAppointment(editingAppointmentId, {
@@ -226,38 +305,6 @@ const AppointmentsPage = () => {
             await fetchInitialData();
         } catch (error) {
             message.error('Ошибка при удалении записи: ' + (error.response?.data?.message || error.message));
-        }
-    };
-
-    const handleEdit = async (id) => {
-        try {
-            setLoading(true);
-            const appointment = await getAppointmentById(id);
-
-            await fetchDoctorsForClinic(appointment.clinicId);
-
-            if (appointment.doctorDto?.specialization && appointment.appointmentTime) {
-                await fetchAvailableDoctors(
-                    appointment.doctorDto.specialization,
-                    moment(appointment.appointmentTime)
-                );
-            }
-
-            form.setFieldsValue({
-                patientId: appointment.patientDto.id,
-                clinicId: appointment.clinicId,
-                doctorId: appointment.doctorDto.id,
-                specialization: appointment.doctorDto.specialization,
-                appointmentTime: moment(appointment.appointmentTime)
-            });
-
-            setSelectedClinic(appointment.clinicId);
-            setEditingAppointmentId(id);
-            setIsModalVisible(true);
-        } catch (error) {
-            message.error('Ошибка при загрузке данных записи');
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -294,6 +341,26 @@ const AppointmentsPage = () => {
         }
     };
 
+    const handleTableChange = (pagination, filters, sorter) => {
+        setFilters({
+            patientName: filters.patientName || null,
+            clinicName: filters.clinicName || null,
+            doctorName: filters.doctorName || null
+        });
+        setSortedInfo(sorter);
+    };
+
+    const resetAllFilters = () => {
+        setFilters({
+            patientName: null,
+            clinicName: null,
+            doctorName: null
+        });
+        setSortedInfo({});
+        setSearchValue('');
+        handleSearch('');
+    };
+
     const columns = [
         {
             title: 'Пациент',
@@ -312,6 +379,7 @@ const AppointmentsPage = () => {
             })),
             onFilter: (value, record) => record.patientDto.name.includes(value),
             filterSearchPlaceholder: 'Поиск',
+            filteredValue: filters.patientName || null,
         },
         {
             title: 'Клиника',
@@ -324,6 +392,7 @@ const AppointmentsPage = () => {
             })),
             onFilter: (value, record) => record.clinicName.includes(value),
             filterSearchPlaceholder: 'Поиск',
+            filteredValue: filters.clinicName || null,
         },
         {
             title: 'Адрес',
@@ -348,6 +417,7 @@ const AppointmentsPage = () => {
             })),
             onFilter: (value, record) => record.doctorDto.name.includes(value),
             filterSearchPlaceholder: 'Поиск',
+            filteredValue: filters.doctorName || null,
         },
         {
             title: 'Дата',
@@ -355,7 +425,8 @@ const AppointmentsPage = () => {
             key: 'appointmentTime',
             render: (time) => <span style={{ whiteSpace: 'nowrap' }}>{moment(time).format('DD.MM.YYYY HH:mm')}</span>,
             width: 150,
-            sorter: (a, b) => moment(a.appointmentTime).unix() - moment(b.appointmentTime).unix()
+            sorter: (a, b) => moment(a.appointmentTime).unix() - moment(b.appointmentTime).unix(),
+            sortOrder: sortedInfo.columnKey === 'appointmentTime' ? sortedInfo.order : null
         },
         {
             title: 'Действия',
@@ -494,13 +565,22 @@ const AppointmentsPage = () => {
                         }}
                     />
                 </div>
-                <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => setIsModalVisible(true)}
-                >
-                    Новая запись
-                </Button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                    <Button
+                        icon={<ClearOutlined />}
+                        onClick={resetAllFilters}
+                        disabled={!filters.patientName && !filters.clinicName && !filters.doctorName && !searchValue && !sortedInfo.columnKey}
+                    >
+                        Сбросить все фильтры
+                    </Button>
+                    <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={() => setIsModalVisible(true)}
+                    >
+                        Новая запись
+                    </Button>
+                </div>
             </div>
 
             <div style={{
@@ -517,15 +597,14 @@ const AppointmentsPage = () => {
                     pagination={{
                         pageSize: 5,
                         showSizeChanger: false,
-                        //showTotal: (total) => `Всего записей: ${total}`,
                     }}
                     bordered
                     locale={{
-                        emptyText: <Empty description="Нет данных" />,
-                        filterSearchPlaceholder: 'Поиск',
                         filterReset: 'Сбросить',
-                        filterConfirm: 'ОК'
+                        filterConfirm: 'ОК',
+                        emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Нет данных" />
                     }}
+                    onChange={handleTableChange}
                 />
             </div>
 
@@ -538,8 +617,12 @@ const AppointmentsPage = () => {
                 cancelText="Отмена"
                 confirmLoading={loading}
                 width={700}
+                forceRender
             >
-                <Form form={form} layout="vertical">
+                <Form
+                    form={form}
+                    layout="vertical"
+                >
                     <Form.Item
                         name="patientId"
                         label="Пациент"
@@ -569,15 +652,15 @@ const AppointmentsPage = () => {
                             showSearch
                             placeholder="Выберите клинику"
                             optionFilterProp="label"
-                            filterOption={(input, option) => {
-                                if (!option || !option.label) return false;
-                                return option.label.toLowerCase().includes(input.toLowerCase());
-                            }}
-                            onChange={handleClinicChange}
+                            filterOption={(input, option) =>
+                                option.label.toLowerCase().includes(input.toLowerCase())
+                            }
+                            onChange={(value) => handleClinicChange(value.value)}
                             options={clinics.map(clinic => ({
                                 value: clinic.id,
                                 label: `${clinic.name} (${clinic.address})`
                             }))}
+                            labelInValue // Используем labelInValue для сохранения метки
                         />
                     </Form.Item>
 
@@ -652,7 +735,7 @@ const AppointmentsPage = () => {
 
                     <Form.Item
                         name="doctorId"
-                        label="Доступные врачи"
+                        label="Врач"
                         rules={[{ required: true, message: 'Пожалуйста, выберите врача' }]}
                     >
                         <Select

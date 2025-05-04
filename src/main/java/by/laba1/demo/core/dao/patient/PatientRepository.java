@@ -15,4 +15,6 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
     List<Patient> findByFilters(@Param("name") String name, @Param("phoneNumber") String phoneNumber);
 
     boolean existsByPhoneNumber(String phoneNumber);
+
+    boolean existsByNameAndPhoneNumber(String name, String phoneNumber);
 }

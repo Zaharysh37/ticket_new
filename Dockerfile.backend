@@ -1,0 +1,18 @@
+# Сборка
+FROM gradle:8.7-jdk17-alpine AS builder
+WORKDIR /app
+
+# Кешируем зависимости
+COPY build.gradle settings.gradle ./
+RUN gradle dependencies --no-daemon
+
+# Копируем код и собираем
+COPY src ./src
+RUN gradle bootJar --no-daemon
+
+# Финальный образ
+FROM eclipse-temurin:17
+WORKDIR /app
+COPY --from=builder /app/build/libs/*.jar ./app.jar
+EXPOSE 8081
+ENTRYPOINT ["java", "-jar", "app.jar"]

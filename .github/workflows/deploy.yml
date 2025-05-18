@@ -16,6 +16,9 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew  # Даем права на выполнение
+
       - name: Build with Gradle  # Собираем JAR без тестов
         run: ./gradlew bootJar -x test
 

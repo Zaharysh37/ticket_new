@@ -32,6 +32,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
+          file: Dockerfile.backend  # Используем отдельный Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/demo-deployment:latest
 

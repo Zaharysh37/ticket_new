@@ -54,7 +54,7 @@ function App() {
               onClick={() => navigate('/')}
           >
             <MedicineBoxOutlined style={{ fontSize: '24px', marginRight: '8px' }} />
-            МедЗапись
+            МедЗаписъ
           </div>
 
           <Menu
